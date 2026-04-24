@@ -50,13 +50,13 @@ menuRegistros estado = do
     putStrLn "╠══════════════════════════════════╣"
     putStrLn "║  1. Registrar ingreso            ║"
     putStrLn "║  2. Registrar gasto              ║"
-    putStrLn "║  3. Registrar ahorro             ║"
-    putStrLn "║  4. Registrar inversión          ║"
-    putStrLn "║  5. Ver todos los registros      ║"
-    putStrLn "║  6. Buscar por categoría         ║"
-    putStrLn "║  7. Ver registros por mes        ║"
-    putStrLn "║  8. Eliminar un registro         ║"
-    putStrLn "║  9. Ver resumen de totales       ║"
+    --putStrLn "║  3. Registrar ahorro             ║"
+   -- putStrLn "║  4. Registrar inversión          ║"
+    putStrLn "║  3. Ver todos los registros      ║"
+    putStrLn "║  4. Buscar por categoría         ║"
+    putStrLn "║  5. Ver registros por mes        ║"
+    putStrLn "║  6. Eliminar un registro         ║"
+    putStrLn "║  7. Ver resumen de totales       ║"
     putStrLn "║  0. Volver al menú principal     ║"
     putStrLn "╚══════════════════════════════════╝"
     putStr "Elige una opción: "
@@ -126,7 +126,7 @@ pedirRegistro estado t = do
     -- pedirMonto verifica que sea un número válido mayor a cero.
 
     -- PASO 2: Pedir la categoría
-    putStr "Categoría (ej: Alimentación, Salario, Renta): "
+    putStr "Categoría (Alimentación, Salario, Renta, Ahorros, inversiones): "
     hFlush stdout
     cat <- getLine
 
