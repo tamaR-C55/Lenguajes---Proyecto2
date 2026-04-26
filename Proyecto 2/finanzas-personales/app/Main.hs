@@ -1,8 +1,13 @@
 module Main where
 
-import qualified MyLib (someFunc)
+
+import Types
+import Presupuesto
 
 main :: IO ()
 main = do
-  putStrLn "Hello, Haskell!"
-  MyLib.someFunc
+    let estadoInicial = estadoVacio
+
+    estadoFinal <- definirPresupuestoIO estadoInicial
+
+    print estadoFinal
