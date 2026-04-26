@@ -185,7 +185,7 @@ mostrarRegistro r =
     "╔═══════════════════════════════════════\n" ++
     "║ ID:          " ++ show (registroId r)     ++ "\n" ++
     "║ Tipo:        " ++ mostrarTipo (tipo r)    ++ "\n" ++
-    "║ Monto:       ₡" ++ show (monto r)         ++ "\n" ++
+    "║ Monto:       " ++ show (monto r)         ++ "\n" ++
     "║ Categoría:   " ++ categoria r             ++ "\n" ++
     "║ Fecha:       " ++ mostrarFecha (fecha r)  ++ "\n" ++
     "║ Descripción: " ++ descripcion r           ++ "\n" ++

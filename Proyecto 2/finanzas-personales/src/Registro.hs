@@ -24,10 +24,12 @@ import Types
 import Data.List  (intercalate, sortBy)
 import Data.Ord   (comparing)
 import Data.Char  (toLower)
-
 -- Data.Char nos da 'toLower' para convertir letras a minúsculas
 -- Lo usamos para comparar texto sin importar mayúsculas/minúsculas
 
+import System.IO (hFlush, stdout)
+-- hFlush stdout fuerza que el texto aparezca en pantalla
+-- antes de esperar que el usuario escriba algo.
 
 -- SECCIÓN 2: MENÚ PRINCIPAL DE REGISTROS
 
@@ -48,16 +50,20 @@ menuRegistros estado = do
     putStrLn "╠══════════════════════════════════╣"
     putStrLn "║  1. Registrar ingreso            ║"
     putStrLn "║  2. Registrar gasto              ║"
-    putStrLn "║  3. Registrar ahorro             ║"
-    putStrLn "║  4. Registrar inversión          ║"
-    putStrLn "║  5. Ver todos los registros      ║"
-    putStrLn "║  6. Buscar por categoría         ║"
-    putStrLn "║  7. Ver registros por mes        ║"
-    putStrLn "║  8. Eliminar un registro         ║"
-    putStrLn "║  9. Ver resumen de totales       ║"
+    --putStrLn "║  3. Registrar ahorro             ║"
+   -- putStrLn "║  4. Registrar inversión          ║"
+    putStrLn "║  3. Ver todos los registros      ║"
+    putStrLn "║  4. Buscar por categoría         ║"
+    putStrLn "║  5. Ver registros por mes        ║"
+    putStrLn "║  6. Eliminar un registro         ║"
+    putStrLn "║  7. Ver resumen de totales       ║"
     putStrLn "║  0. Volver al menú principal     ║"
     putStrLn "╚══════════════════════════════════╝"
     putStr "Elige una opción: "
+    hFlush stdout
+    -- hFlush stdout es necesario aqui porque putStr (sin salto
+    -- de linea) no siempre se muestra antes de que getLine
+    -- espere la entrada del usuario en Windows.
 
     opcion <- getLine
     -- 'getLine' lee una línea de texto del teclado
@@ -120,21 +126,25 @@ pedirRegistro estado t = do
     -- pedirMonto verifica que sea un número válido mayor a cero.
 
     -- PASO 2: Pedir la categoría
-    putStr "Categoría (ej: Alimentación, Salario, Renta): "
+    putStr "Categoría (Alimentación, Salario, Renta, Ahorros, inversiones): "
+    hFlush stdout
     cat <- getLine
 
     -- PASO 3: Pedir la fecha
     putStrLn "Fecha del registro:"
+    hFlush stdout
     f <- pedirFecha
     -- pedirFecha le pide día, mes y año por separado
 
     -- PASO 4: Pedir la descripción
     putStr "Descripción: "
+    hFlush stdout
     desc <- getLine
 
     -- PASO 5: Pedir las etiquetas
     putStrLn "Etiquetas separadas por coma (ej: fijo,variable,mensual)"
     putStr "Etiquetas (o Enter para ninguna): "
+    hFlush stdout
     linea <- getLine
     let tags = parsearEtiquetas linea
     -- 'let' dentro de un bloque 'do' define un valor local
@@ -173,9 +183,9 @@ pedirRegistro estado t = do
                 -- el campo 'registros' reemplazado por rsActualizados.
 
             putStrLn ""
-            putStrLn ("✓ " ++ mostrarTipo t ++ " registrado exitosamente.")
+            putStrLn (" " ++ mostrarTipo t ++ " registrado exitosamente.")
             putStrLn ("  ID:        " ++ show nuevoId)
-            putStrLn ("  Monto:     ₡" ++ show m)
+            putStrLn ("  Monto:     " ++ show m)
             putStrLn ("  Categoría: " ++ cat)
             putStrLn ("  Fecha:     " ++ mostrarFecha f)
             putStrLn ("  Etiquetas: " ++ mostrarEtiquetas tags)
@@ -189,7 +199,9 @@ pedirRegistro estado t = do
 
 pedirMonto :: IO Double
 pedirMonto = do
-    putStr "Monto (₡): "
+    putStr "Monto ( ): "
+    hFlush stdout
+
     linea <- getLine
     -- 'reads' intenta convertir un String a un tipo numérico.
     -- Devuelve [(valor, restoDelString)].
@@ -231,6 +243,7 @@ pedirFecha = do
 pedirNumeroEnRango :: String -> Int -> Int -> IO Int
 pedirNumeroEnRango mensaje minVal maxVal = do
     putStr mensaje
+    hFlush stdout
     linea <- getLine
     case reads linea :: [(Int, String)] of
         [(n, "")] ->
@@ -301,6 +314,7 @@ mostrarTodosLosRegistros rs = do
 buscarPorCategoriaIO :: EstadoSistema -> IO EstadoSistema
 buscarPorCategoriaIO estado = do
     putStr "\nBuscar categoría: "
+    hFlush stdout
     cat <- getLine
     let encontrados = filtrarPorCategoria cat (registros estado)
     if null encontrados
@@ -311,7 +325,7 @@ buscarPorCategoriaIO estado = do
             mapM_ (\r -> do
                 putStrLn ""
                 putStrLn (mostrarRegistro r)) encontrados
-            putStrLn ("\nTotal en esta categoría: ₡" ++
+            putStrLn ("\nTotal en esta categoría: " ++
                       show (totalPorCategoria cat (registros estado)))
     return estado
 
@@ -332,16 +346,17 @@ mostrarPorMesIO rs = do
                 putStrLn ""
                 putStrLn (mostrarRegistro r)) encontrados
             putStrLn "\n--- Totales del mes ---"
-            putStrLn ("Ingresos:    ₡" ++ show (totalPorTipo Ingreso   encontrados))
-            putStrLn ("Gastos:      ₡" ++ show (totalPorTipo Gasto     encontrados))
-            putStrLn ("Ahorros:     ₡" ++ show (totalPorTipo Ahorro    encontrados))
-            putStrLn ("Inversiones: ₡" ++ show (totalPorTipo Inversion encontrados))
+            putStrLn ("Ingresos:    " ++ show (totalPorTipo Ingreso   encontrados))
+            putStrLn ("Gastos:      " ++ show (totalPorTipo Gasto     encontrados))
+            putStrLn ("Ahorros:     " ++ show (totalPorTipo Ahorro    encontrados))
+            putStrLn ("Inversiones: " ++ show (totalPorTipo Inversion encontrados))
 
 
 -- Pide un ID y elimina ese registro con confirmación
 eliminarRegistroIO :: EstadoSistema -> IO EstadoSistema
 eliminarRegistroIO estado = do
     putStr "\nID del registro a eliminar: "
+    hFlush stdout
     linea <- getLine
     case reads linea :: [(Int, String)] of
         [(idBuscar, "")] ->
@@ -353,6 +368,7 @@ eliminarRegistroIO estado = do
                     putStrLn "\nVas a eliminar este registro:"
                     putStrLn (mostrarRegistro r)
                     putStr "¿Confirmar eliminación? (s/n): "
+                    hFlush stdout
                     conf <- getLine
                     if map toLower conf == "s"
                         then do
@@ -448,12 +464,12 @@ resumenTotales rs =
     "\n╔══════════════════════════════════════════╗\n"  ++
     "║           RESUMEN FINANCIERO             ║\n"  ++
     "╠══════════════════════════════════════════╣\n"  ++
-    "║ Ingresos:    ₡" ++ pad (show ingresos)   ++ "║\n" ++
-    "║ Gastos:      ₡" ++ pad (show gastos)     ++ "║\n" ++
-    "║ Ahorros:     ₡" ++ pad (show ahorros)    ++ "║\n" ++
-    "║ Inversiones: ₡" ++ pad (show inversiones)++ "║\n" ++
+    "║ Ingresos:    " ++ pad (show ingresos)   ++ "║\n" ++
+    "║ Gastos:      " ++ pad (show gastos)     ++ "║\n" ++
+    "║ Ahorros:     " ++ pad (show ahorros)    ++ "║\n" ++
+    "║ Inversiones: " ++ pad (show inversiones)++ "║\n" ++
     "╠══════════════════════════════════════════╣\n"  ++
-    "║ Balance neto:₡" ++ pad (show balance)    ++ "║\n" ++
+    "║ Balance neto: " ++ pad (show balance)    ++ "║\n" ++
     "╚══════════════════════════════════════════╝"
   where
     ingresos    = totalPorTipo Ingreso   rs
