@@ -1,5 +1,5 @@
 module Presupuesto where
-
+import Data.Char (toLower)
 import Types
 import Data.ByteString (putStr)
 
@@ -46,15 +46,25 @@ definirPresupuestoIO estado = do
     anio      <- leerAnio
 
     let nuevo = crearPresupuesto categoria monto mes anio
-    let (estadoNuevo, agregado) = agregarPresupuesto nuevo estado
 
-    if agregado
+    if existePresupuesto nuevo (presupuestos estado)
         then do
+            putStrLn " Ya existe un presupuesto para esa categoría y periodo"
+            putStrLn "¿Desea reemplazarlo? (s/n)"
+            opcion <- getLine
+
+            if opcion == "s"
+                then do
+                    let estadoNuevo = reemplazarPresupuesto nuevo estado
+                    putStrLn "Presupuesto reemplazado correctamente"
+                    return estadoNuevo
+                else do
+                    putStrLn "No se realizaron cambios"
+                    return estado
+        else do
+            let estadoNuevo = estado { presupuestos = nuevo : presupuestos estado }
             putStrLn "Presupuesto agregado correctamente"
             return estadoNuevo
-        else do
-            putStrLn " Ya existe un presupuesto para esa categoría en ese periodo"
-            return estado
 
 
 obtenerPresupuesto :: EstadoSistema -> IO ()
@@ -86,7 +96,7 @@ crearPresupuesto cat monto mes anio =
 existePresupuesto :: Presupuesto -> [Presupuesto] -> Bool
 existePresupuesto nuevo lista =
     any (\p ->
-        presupuestoCategoria p == presupuestoCategoria nuevo &&
+        map toLower (presupuestoCategoria p) == map toLower (presupuestoCategoria nuevo) &&
         periodoMes p == periodoMes nuevo &&
         periodoAnio p == periodoAnio nuevo
     ) lista
@@ -102,7 +112,7 @@ agregarPresupuesto p estado =
 buscarPresupuestoUnico :: String -> Int -> Int -> EstadoSistema -> Maybe Presupuesto
 buscarPresupuestoUnico categoria mes anio estado =
   case filter (\p ->
-        presupuestoCategoria p == categoria &&
+        map toLower (presupuestoCategoria p) == map toLower categoria &&
         periodoMes p == mes &&
         periodoAnio p == anio
        ) (presupuestos estado) of
@@ -110,6 +120,18 @@ buscarPresupuestoUnico categoria mes anio estado =
     [p] -> Just p     -- encontró exactamente uno
     []  -> Nothing    -- no encontró ninguno
 
+
+reemplazarPresupuesto :: Presupuesto -> EstadoSistema -> EstadoSistema
+reemplazarPresupuesto nuevo estado =
+    estado {
+        presupuestos = nuevo : filter (\p ->
+            not (
+                map toLower (presupuestoCategoria p) == map toLower (presupuestoCategoria nuevo) &&
+                periodoMes p == periodoMes nuevo &&
+                periodoAnio p == periodoAnio nuevo
+            )
+        ) (presupuestos estado)
+    }
 mostrarPresupuesto :: Presupuesto -> String
 mostrarPresupuesto p =
 
