@@ -1,7 +1,11 @@
 module Presupuesto where
 import Data.Char (toLower)
-import Types
-import Data.ByteString (putStr)
+
+
+import Types 
+import Registro
+
+
 
 
 
@@ -14,7 +18,8 @@ menuPresupuestos estado = do
     putStrLn "\n=== MENÚ DE PRESUPUESTOS ==="
     putStrLn "1. Definir presupuesto"
     putStrLn "2. Obtener informacion de un presupuesto"
-    putStrLn "3. Volver"
+    putStrLn "3. Comparar Registros financieros VS Presupuesto  "
+    putStrLn "4. Volver"
     putStrLn "Seleccione una opción:"
     
     opcion <- getLine --guarda la opcion 
@@ -26,8 +31,11 @@ menuPresupuestos estado = do
         "2" -> do
             obtenerPresupuesto estado
             menuPresupuestos estado
+        "3" -> do
+            compararPresupuesto estado
+            menuPresupuestos estado
         
-        "3" -> return estado -- devuelve el estado actual 
+        "4" -> return estado -- devuelve el estado actual 
         
         _ -> do -- cualquier otro 
             putStrLn "Opción inválida"
@@ -81,6 +89,54 @@ obtenerPresupuesto estado = do
     case resultado of
         Just p  -> putStrLn (mostrarPresupuesto p)
         Nothing -> putStrLn "No se encontró el presupuesto" 
+
+-- calcular los gastos en un periodo determinado 
+obtenerGasto :: String -> Int -> Int -> EstadoSistema -> Double
+obtenerGasto categoria mes anio estado =
+    let listaRegistros = registros estado
+        r1 = filtrarPorTipo Gasto listaRegistros
+        r2 = filtrarPorCategoria categoria r1
+        r3 = filtrarPorMes mes anio r2
+        total = totalMonto r3
+    in total -- duelve el total 
+
+
+
+compararPresupuesto ::  EstadoSistema -> IO()
+compararPresupuesto  estado = do 
+    putStrLn "\n Ingrese los datos para realizar la comparacion de Gastos VS Presupuesto"
+    categoria <- leerCategoria
+    mes       <- leerMes
+    anio      <- leerAnio
+
+    
+    let monto =
+            case buscarPresupuestoUnico categoria mes anio estado of
+                Just p  -> montoMaximo p
+                Nothing -> 0
+
+    if monto ==0 
+        then do
+            putStrLn "No se encontró el presupuesto"
+            putStrLn "Presione ENTER para volver al menú"
+            _ <- getLine
+            return ()
+    else do
+        let gasto = obtenerGasto categoria mes anio estado
+        if gasto > monto
+            then do
+                putStrLn "Ha excedido su presupuesto\n"
+                putStrLn ("Su presupuesto es: " ++ show monto)
+                putStrLn ("Sus gastos han sido: " ++ show gasto)
+                putStrLn ("Se excedió por: " ++ show (gasto - monto))
+
+
+        else do
+                putStrLn "No ha excedido su presupuesto\n"
+                putStrLn ("Su presupuesto es: " ++ show monto)
+                putStrLn ("Sus gastos han sido: " ++ show gasto)
+                putStrLn ("Le queda: " ++ show (monto - gasto))
+
 
 ---------------------------------------------------------------------------------------------------------------------------------
 -- FUNCIONES auxiliares
