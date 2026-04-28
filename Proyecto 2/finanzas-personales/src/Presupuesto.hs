@@ -3,7 +3,7 @@ import Data.Char (toLower)
 
 
 import Types 
-import Registro
+
 
 
 
@@ -18,8 +18,9 @@ menuPresupuestos estado = do
     putStrLn "\n=== MENÚ DE PRESUPUESTOS ==="
     putStrLn "1. Definir presupuesto"
     putStrLn "2. Obtener informacion de un presupuesto"
-    putStrLn "3. Comparar Registros financieros VS Presupuesto  "
-    putStrLn "4. Volver"
+    putStrLn "3. Obtener todos los presupuestos"
+    putStrLn "4. Comparar Registros financieros VS Presupuesto  "
+    putStrLn "0. Volver"
     putStrLn "Seleccione una opción:"
     
     opcion <- getLine --guarda la opcion 
@@ -32,10 +33,13 @@ menuPresupuestos estado = do
             obtenerPresupuesto estado
             menuPresupuestos estado
         "3" -> do
+            mostrarTodosPresupuestos estado
+            menuPresupuestos estado
+        "4" -> do
             compararPresupuesto estado
             menuPresupuestos estado
         
-        "4" -> return estado -- devuelve el estado actual 
+        "0" -> return estado -- devuelve el estado actual 
         
         _ -> do -- cualquier otro 
             putStrLn "Opción inválida"
@@ -125,7 +129,7 @@ compararPresupuesto  estado = do
         let gasto = obtenerGasto categoria mes anio estado
         if gasto > monto
             then do
-                putStrLn "Ha excedido su presupuesto\n"
+                putStrLn "\n Ha excedido su presupuesto\n"
                 putStrLn ("Su presupuesto es: " ++ show monto)
                 putStrLn ("Sus gastos han sido: " ++ show gasto)
                 putStrLn ("Se excedió por: " ++ show (gasto - monto))
@@ -138,6 +142,33 @@ compararPresupuesto  estado = do
                 putStrLn ("Le queda: " ++ show (monto - gasto))
 
 
+
+
+verificarAlertaPresupuesto :: String -> Int -> Int -> EstadoSistema -> IO()
+verificarAlertaPresupuesto categoria mes anio estado = do 
+    
+
+    
+    let monto =
+            case buscarPresupuestoUnico categoria mes anio estado of
+                Just p  -> montoMaximo p
+                Nothing -> 0
+
+    if monto /= 0
+        then do
+            let gasto = obtenerGasto categoria mes anio estado
+            if gasto > monto
+                then do
+                     putStrLn "ALERTA "
+                    putStrLn "Ha excedido su presupuesto"
+                    putStrLn ("Categoria de presupuesto: " ++ show categoria)
+                    putStrLn ("Su presupuesto es: " ++ show monto)
+                    putStrLn ("Sus gastos han sido: " ++ show gasto)
+                    putStrLn ("Se excedió por: " ++ show (gasto - monto))
+            else
+                return ()
+    else do
+        return ()         
 ---------------------------------------------------------------------------------------------------------------------------------
 -- FUNCIONES auxiliares
 
@@ -195,6 +226,16 @@ mostrarPresupuesto p =
     "Monto: " ++ show (montoMaximo p) ++ "\n" ++
     "Mes: " ++ show (periodoMes p) ++ "\n" ++
     "Año: " ++ show (periodoAnio p)
+
+mostrarTodosPresupuestos :: EstadoSistema -> IO ()
+mostrarTodosPresupuestos estado = do
+    let lista = presupuestos estado
+
+    if null lista
+        then putStrLn "No hay presupuestos registrados."
+        else do
+            putStrLn "\n--- Lista de presupuestos ---"
+            putStrLn (unlines (map mostrarPresupuesto lista))
 -- =========================================================
 -- VALIDACIÓN
 -- =========================================================
@@ -259,3 +300,21 @@ leerAnio = do
                     putStrLn "Año inválido"
                     leerAnio
                 else return anio
+
+
+-- Filtra por tipo usando filter (función de orden superior)
+filtrarPorTipo :: TipoRegistro -> [RegistroFinanciero] -> [RegistroFinanciero]
+filtrarPorTipo t = filter (\r -> tipo r == t)
+
+-- Filtra por categoría ignorando mayúsculas/minúsculas
+filtrarPorCategoria :: String -> [RegistroFinanciero] -> [RegistroFinanciero]
+filtrarPorCategoria cat =
+    filter (\r -> map toLower (categoria r) == map toLower cat)
+
+-- Filtra por mes y año
+filtrarPorMes :: Int -> Int -> [RegistroFinanciero] -> [RegistroFinanciero]
+filtrarPorMes m a = filter (\r -> mismoMesAnio (fecha r) m a)
+
+-- Suma todos los montos usando foldr (función de orden superior)
+totalMonto :: [RegistroFinanciero] -> Double
+totalMonto = foldr (\r acc -> monto r + acc) 0.0

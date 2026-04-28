@@ -28,6 +28,7 @@ import Data.Char  (toLower)
 -- Lo usamos para comparar texto sin importar mayúsculas/minúsculas
 
 import System.IO (hFlush, stdout)
+import Presupuesto hiding (totalMonto, filtrarPorTipo, filtrarPorCategoria,filtrarPorMes )
 -- hFlush stdout fuerza que el texto aparezca en pantalla
 -- antes de esperar que el usuario escriba algo.
 
@@ -189,7 +190,16 @@ pedirRegistro estado t = do
             putStrLn ("  Categoría: " ++ cat)
             putStrLn ("  Fecha:     " ++ mostrarFecha f)
             putStrLn ("  Etiquetas: " ++ mostrarEtiquetas tags)
-            return nuevoEstado
+
+            if t == Gasto
+                then do
+                    let mesRegistro  = mes f
+                    let anioRegistro = anio f
+                    verificarAlertaPresupuesto cat mesRegistro anioRegistro nuevoEstado
+                    return nuevoEstado
+            else
+                return  nuevoEstado 
+            
 
 
 -- SECCIÓN 4: PEDIR MONTO CON VALIDACIÓN
