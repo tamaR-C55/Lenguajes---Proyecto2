@@ -159,12 +159,13 @@ verificarAlertaPresupuesto categoria mes anio estado = do
             let gasto = obtenerGasto categoria mes anio estado
             if gasto > monto
                 then do
-                     putStrLn "ALERTA "
+                    putStrLn "ALERTA "
                     putStrLn "Ha excedido su presupuesto"
                     putStrLn ("Categoria de presupuesto: " ++ show categoria)
                     putStrLn ("Su presupuesto es: " ++ show monto)
                     putStrLn ("Sus gastos han sido: " ++ show gasto)
                     putStrLn ("Se excedió por: " ++ show (gasto - monto))
+                
             else
                 return ()
     else do

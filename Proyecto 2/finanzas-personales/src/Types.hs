@@ -219,3 +219,17 @@ fechaAnterior f1 f2
 -- Los 'guards' (|) son como condiciones if/else encadenadas.
 -- Haskell evalúa de arriba hacia abajo hasta encontrar True.
 -- 'otherwise' es el caso por defecto (como el else final).
+
+
+
+-- Tipos de datos adicionales para la sección de simulación
+
+type Monto = Double
+
+data Periodo = Periodo
+    {mesPeriodo :: Int,  -- Mes del año (1-12)
+     anioPeriodo :: Int  -- Año completo (ej: 2025)
+    } deriving (Show, Read, Eq)
+
+type EstadoFinanciero = EstadoSistema
+type Categoria = String

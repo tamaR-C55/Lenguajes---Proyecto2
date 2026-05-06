@@ -18,7 +18,9 @@ module Main where
 import Types
 import Registro
 import Persistencia
-import Presupuesto 
+import Presupuesto
+import MenuAnalisis (menuAnalisis)
+
 
 
 -- ============================================================
@@ -81,8 +83,8 @@ menuPrincipal estado = do
             menuPrincipal nuevoEstado
            
         "3" -> do
-            putStrLn "(Módulo de Análisis - Persona 3)"
-            menuPrincipal estado
+            nuevoEstado <- menuAnalisis estado
+            menuPrincipal nuevoEstado
         "4" -> do
             putStrLn "(Módulo de Reportes - Persona 4)"
             menuPrincipal estado
