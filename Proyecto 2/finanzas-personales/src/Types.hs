@@ -154,7 +154,7 @@ mostrarTipo :: TipoRegistro -> String
 mostrarTipo Ingreso   = "Ingreso"
 mostrarTipo Gasto     = "Gasto"
 mostrarTipo Ahorro    = "Ahorro"
-mostrarTipo Inversion = "Inversión"
+mostrarTipo Inversion = "Inversion"
 -- Esto se llama "pattern matching": Haskell ve qué valor tiene el TipoRegistro y devuelve el texto correspondiente.
 -- Es como un switch/case pero más elegante y seguro.
 

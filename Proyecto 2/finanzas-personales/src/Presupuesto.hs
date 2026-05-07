@@ -15,13 +15,13 @@ import Types
 
 menuPresupuestos :: EstadoSistema -> IO EstadoSistema  -- recibe un estado y lo devuelve actualizado
 menuPresupuestos estado = do
-    putStrLn "\n=== MENÚ DE PRESUPUESTOS ==="
+    putStrLn "\n=== MENU DE PRESUPUESTOS ==="
     putStrLn "1. Definir presupuesto"
     putStrLn "2. Obtener informacion de un presupuesto"
     putStrLn "3. Obtener todos los presupuestos"
     putStrLn "4. Comparar Registros financieros VS Presupuesto  "
     putStrLn "0. Volver"
-    putStrLn "Seleccione una opción:"
+    putStrLn "Seleccione una opcion:"
     
     opcion <- getLine --guarda la opcion 
 
@@ -42,7 +42,7 @@ menuPresupuestos estado = do
         "0" -> return estado -- devuelve el estado actual 
         
         _ -> do -- cualquier otro 
-            putStrLn "Opción inválida"
+            putStrLn "Opción invalida"
             menuPresupuestos estado
 
 -----------------------------------------------------------------------------------------------------------------------
@@ -61,7 +61,7 @@ definirPresupuestoIO estado = do
 
     if existePresupuesto nuevo (presupuestos estado)
         then do
-            putStrLn " Ya existe un presupuesto para esa categoría y periodo"
+            putStrLn " Ya existe un presupuesto para esa categoria y periodo"
             putStrLn "¿Desea reemplazarlo? (s/n)"
             opcion <- getLine
 
@@ -92,7 +92,7 @@ obtenerPresupuesto estado = do
 
     case resultado of
         Just p  -> putStrLn (mostrarPresupuesto p)
-        Nothing -> putStrLn "No se encontró el presupuesto" 
+        Nothing -> putStrLn "No se encontro el presupuesto" 
 
 -- calcular los gastos en un periodo determinado 
 obtenerGasto :: String -> Int -> Int -> EstadoSistema -> Double
@@ -121,8 +121,8 @@ compararPresupuesto  estado = do
 
     if monto ==0 
         then do
-            putStrLn "No se encontró el presupuesto"
-            putStrLn "Presione ENTER para volver al menú"
+            putStrLn "No se encontro el presupuesto"
+            putStrLn "Presione ENTER para volver al menu"
             _ <- getLine
             return ()
     else do
@@ -132,7 +132,7 @@ compararPresupuesto  estado = do
                 putStrLn "\n Ha excedido su presupuesto\n"
                 putStrLn ("Su presupuesto es: " ++ show monto)
                 putStrLn ("Sus gastos han sido: " ++ show gasto)
-                putStrLn ("Se excedió por: " ++ show (gasto - monto))
+                putStrLn ("Se excedio por: " ++ show (gasto - monto))
 
 
         else do
@@ -164,7 +164,7 @@ verificarAlertaPresupuesto categoria mes anio estado = do
                     putStrLn ("Categoria de presupuesto: " ++ show categoria)
                     putStrLn ("Su presupuesto es: " ++ show monto)
                     putStrLn ("Sus gastos han sido: " ++ show gasto)
-                    putStrLn ("Se excedió por: " ++ show (gasto - monto))
+                    putStrLn ("Se excedio por: " ++ show (gasto - monto))
                 
             else
                 return ()
@@ -223,7 +223,7 @@ reemplazarPresupuesto nuevo estado =
 mostrarPresupuesto :: Presupuesto -> String
 mostrarPresupuesto p =
 
-    "Categoría: " ++ presupuestoCategoria p ++ "\n" ++
+    "Categoria: " ++ presupuestoCategoria p ++ "\n" ++
     "Monto: " ++ show (montoMaximo p) ++ "\n" ++
     "Mes: " ++ show (periodoMes p) ++ "\n" ++
     "Año: " ++ show (periodoAnio p)
@@ -261,11 +261,11 @@ leerCategoria = do
 
 leerMonto :: IO Double
 leerMonto = do
-    putStrLn "Ingrese el monto máximo:"
+    putStrLn "Ingrese el monto maximo:"
     montoStr <- getLine
     if not (esNumero montoStr)
         then do
-            putStrLn "Monto inválido"
+            putStrLn "Monto invalido"
             leerMonto
         else return (read montoStr) -- convierte a nuemero 
 
@@ -275,7 +275,7 @@ leerMes = do
     mesStr <- getLine
     if not (esNumero mesStr)
         then do
-            putStrLn "Mes inválido"
+            putStrLn "Mes invalido"
             leerMes
         else do
             let mes = read mesStr -- lo convierto a entero 
@@ -292,13 +292,13 @@ leerAnio = do
     anioStr <- getLine
     if not (esNumero anioStr)
         then do
-            putStrLn "Año inválido"
+            putStrLn "Año invalido"
             leerAnio
         else do
             let anio = read anioStr
             if anio <= 0
                 then do
-                    putStrLn "Año inválido"
+                    putStrLn "Año invalido"
                     leerAnio
                 else return anio
 
