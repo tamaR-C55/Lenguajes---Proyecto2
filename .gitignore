@@ -1,0 +1,9 @@
+dist-newstyle/
+
+/.stack-work/
+*.hi
+*.o
+*.prof
+*.hcr
+*.aux
+*.log
