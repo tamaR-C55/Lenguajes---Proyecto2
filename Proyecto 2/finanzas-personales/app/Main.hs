@@ -59,15 +59,15 @@ menuPrincipal :: EstadoSistema -> IO EstadoSistema
 menuPrincipal estado = do
     putStrLn ""
     putStrLn "╔══════════════════════════════════════════╗"
-    putStrLn "║              MENÚ PRINCIPAL              ║"
+    putStrLn "║              MENU PRINCIPAL              ║"
     putStrLn "╠══════════════════════════════════════════╣"
     putStrLn "║  1. Registros financieros                ║"
-    putStrLn "║  2. Presupuestos y reglas  (Persona 2)   ║"
-    putStrLn "║  3. Análisis y simulación  (Persona 3)   ║"
-    putStrLn "║  4. Reportes               (Persona 4)   ║"
+    putStrLn "║  2. Presupuestos y reglas                ║"
+    putStrLn "║  3. Analisis y simulacion                ║"
+    putStrLn "║  4. Reportes                             ║"
     putStrLn "║  0. Guardar y salir                      ║"
     putStrLn "╚══════════════════════════════════════════╝"
-    putStr "Elige una opción: "
+    putStr "Elige una opcion: "
 
     opcion <- getLine
 
@@ -78,7 +78,7 @@ menuPrincipal estado = do
             guardarEstado nuevoEstado
             menuPrincipal nuevoEstado
         "2" -> do
-            putStrLn "(Módulo de Presupuestos - Persona 2)"
+            putStrLn "(Modulo de Presupuestos - Persona 2)"
             nuevoEstado <- menuPresupuestos estado
             menuPrincipal nuevoEstado
            
@@ -86,10 +86,10 @@ menuPrincipal estado = do
             nuevoEstado <- menuAnalisis estado
             menuPrincipal nuevoEstado
         "4" -> do
-            putStrLn "(Módulo de Reportes - Persona 4)"
+            putStrLn "(Modulo de Reportes - Persona 4)"
             menuPrincipal estado
         "0" ->
             return estado
         _   -> do
-            putStrLn "Opción no válida."
+            putStrLn "Opcion no valida."
             menuPrincipal estado
