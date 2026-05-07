@@ -1,15 +1,15 @@
 -- ============================================================
 -- MenuAnalisis.hs
--- Interfaz de usuario para el módulo de análisis y simulación
+-- Interfaz de usuario para el modulo de analisis y simulacion
 --
--- Este módulo maneja toda la interacción con el usuario para
--- las funciones de análisis y simulación. Importa ambos módulos
+-- Este modulo maneja toda la interaccion con el usuario para
+-- las funciones de analisis y simulacion. Importa ambos modulos
 -- sin generar dependencia circular.
 --
 -- Dependencias:
 --   Types      → tipos de datos
---   Analisis   → funciones puras de análisis
---   Simulacion → funciones puras de simulación
+--   Analisis   → funciones puras de analisis
+--   Simulacion → funciones puras de simulacion
 -- ============================================================
 
 module MenuAnalisis (menuAnalisis) where
@@ -28,18 +28,18 @@ menuAnalisis :: EstadoSistema -> IO EstadoSistema
 menuAnalisis estado = do
     putStrLn ""
     putStrLn "╔══════════════════════════════════════════════════╗"
-    putStrLn "║            ANÁLISIS Y SIMULACIÓN                 ║"
+    putStrLn "║            ANALISIS Y SIMULACION                 ║"
     putStrLn "╠══════════════════════════════════════════════════╣"
     putStrLn "║  1. Flujo de caja mensual                        ║"
-    putStrLn "║  2. Tendencia de gastos promedio (últimos N meses)║"
-    putStrLn "║  3. Proyección de gastos para un mes             ║"
-    putStrLn "║  4. Categorías con mayor gasto en un período     ║"
-    putStrLn "║  5. Porcentaje de gasto por categoría            ║"
-    putStrLn "║  6. Simular reducción de gastos (% en un mes)    ║"
-    putStrLn "║  7. Proyección de ahorro acumulado               ║"
-    putStrLn "║  0. Volver al menú principal                     ║"
+    putStrLn "║  2. Tendencia de gastos promedio (ultimos N meses)║"
+    putStrLn "║  3. Proyeccion de gastos para un mes             ║"
+    putStrLn "║  4. Categorias con mayor gasto en un periodo     ║"
+    putStrLn "║  5. Porcentaje de gasto por categoria            ║"
+    putStrLn "║  6. Simular reduccion de gastos (% en un mes)    ║"
+    putStrLn "║  7. Proyeccion de ahorro acumulado               ║"
+    putStrLn "║  0. Volver al menu principal                     ║"
     putStrLn "╚══════════════════════════════════════════════════╝"
-    putStr "Elige una opción: "
+    putStr "Elige una opcion: "
     hFlush stdout
     opcion <- getLine
 
@@ -61,10 +61,10 @@ menuAnalisis estado = do
             let n = read nStr :: Int
             let tendencias = tendenciaGastosPromedio periodo n estado
             putStrLn "\n╔══════════════════════════════════════════════════════╗"
-            putStrLn "║   Categoría          Gasto promedio mensual          ║"
+            putStrLn "║   Categoria          Gasto promedio mensual          ║"
             putStrLn "╠══════════════════════════════════════════════════════╣"
             if null tendencias
-                then putStrLn "║   No hay datos en ese período.                       ║"
+                then putStrLn "║   No hay datos en ese periodo.                       ║"
                 else mapM_ mostrarPar tendencias
             putStrLn "╚══════════════════════════════════════════════════════╝"
             esperarTecla
@@ -74,10 +74,10 @@ menuAnalisis estado = do
             periodo <- leerPeriodo
             let proyeccion = proyectarGastosMes periodo estado
             putStrLn "\n╔══════════════════════════════════════════════════════╗"
-            putStrLn "║   Proyección de gastos para el mes (promedio 3 meses)║"
+            putStrLn "║   Proyeccion de gastos para el mes (promedio 3 meses)║"
             putStrLn "╠══════════════════════════════════════════════════════╣"
             if null proyeccion
-                then putStrLn "║   No hay datos históricos suficientes.               ║"
+                then putStrLn "║   No hay datos historicos suficientes.               ║"
                 else mapM_ mostrarPar proyeccion
             putStrLn "╚══════════════════════════════════════════════════════╝"
             esperarTecla
@@ -87,10 +87,10 @@ menuAnalisis estado = do
             periodo <- leerPeriodo
             let ranking = categoriasMayorGasto periodo estado
             putStrLn "\n╔══════════════════════════════════════════════════════╗"
-            putStrLn "║   Categorías con mayor gasto en el período           ║"
+            putStrLn "║   Categorias con mayor gasto en el periodo           ║"
             putStrLn "╠══════════════════════════════════════════════════════╣"
             if null ranking
-                then putStrLn "║   No hay gastos en este período.                     ║"
+                then putStrLn "║   No hay gastos en este periodo.                     ║"
                 else mapM_ mostrarPar ranking
             putStrLn "╚══════════════════════════════════════════════════════╝"
             esperarTecla
@@ -100,10 +100,10 @@ menuAnalisis estado = do
             periodo <- leerPeriodo
             let porcentajes = porcentajeGastoPorCategoria periodo estado
             putStrLn "\n╔══════════════════════════════════════════════════════╗"
-            putStrLn "║   % del gasto total por categoría                    ║"
+            putStrLn "║   % del gasto total por categoria                    ║"
             putStrLn "╠══════════════════════════════════════════════════════╣"
             if null porcentajes
-                then putStrLn "║   No hay gastos en este período.                     ║"
+                then putStrLn "║   No hay gastos en este periodo.                     ║"
                 else mapM_ mostrarPorcentaje porcentajes
             putStrLn "╚══════════════════════════════════════════════════════╝"
             esperarTecla
@@ -111,39 +111,39 @@ menuAnalisis estado = do
 
         "6" -> do
             periodo <- leerPeriodo
-            putStr "Porcentaje de reducción (0-100): "
+            putStr "Porcentaje de reduccion (0-100): "
             hFlush stdout
             porStr <- getLine
             let porcentaje = read porStr :: Double
             let estadoSimulado = simularReduccionGastos porcentaje periodo estado
             putStrLn "\n╔══════════════════════════════════════════════════════╗"
-            putStrLn "║      Simulación: gastos reducidos en el período      ║"
+            putStrLn "║      Simulacion: gastos reducidos en el periodo      ║"
             putStrLn "╚══════════════════════════════════════════════════════╝"
             let cambios = filter (\(r1, r2) -> monto r1 /= monto r2)
                                  (zip (registros estado) (registros estadoSimulado))
             if null cambios
-                then putStrLn "No se modificó ningún gasto (puede que no haya gastos en el período)."
+                then putStrLn "No se modifico ningun gasto (puede que no haya gastos en el periodo)."
                 else mapM_ (\(rOrig, rNuevo) ->
                         putStrLn $ "  ID " ++ show (registroId rOrig) ++
                                    " : " ++ show (monto rOrig) ++
                                    " → " ++ show (monto rNuevo))
                         cambios
-            putStrLn "\n(Nota: esta simulación no se guarda, solo se muestra el efecto)"
+            putStrLn "\n(Nota: esta simulacion no se guarda, solo se muestra el efecto)"
             esperarTecla
             menuAnalisis estado
 
         "7" -> do
             periodo <- leerPeriodo
-            putStr "Número de meses a proyectar: "
+            putStr "Numero de meses a proyectar: "
             hFlush stdout
             nStr <- getLine
             let n = read nStr :: Int
             let proyeccionAhorros = proyeccionAhorro periodo n estado
             putStrLn "\n╔══════════════════════════════════════════════════════╗"
-            putStrLn "║   Proyección de ahorro acumulado mes a mes           ║"
+            putStrLn "║   Proyeccion de ahorro acumulado mes a mes           ║"
             putStrLn "╠══════════════════════════════════════════════════════╣"
             if null proyeccionAhorros
-                then putStrLn "║   No se pudo proyectar (sin datos históricos?)       ║"
+                then putStrLn "║   No se pudo proyectar (sin datos historicos?)       ║"
                 else mapM_ (\(i, m) ->
                         putStrLn $ "║   Mes " ++ show i ++ ": " ++ show m)
                         (zip [1..] proyeccionAhorros)
@@ -154,7 +154,7 @@ menuAnalisis estado = do
         "0" -> return estado
 
         _ -> do
-            putStrLn "Opción no válida, presiona Enter para continuar"
+            putStrLn "Opcion no valida, presiona Enter para continuar"
             esperarTecla
             menuAnalisis estado
 
