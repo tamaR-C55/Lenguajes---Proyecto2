@@ -30,8 +30,8 @@ menuPresupuestos estado = do
             estadoActualizado <- definirPresupuestoIO estado -- guarda el estado ya actualizado que devuelve
             menuPresupuestos estadoActualizado -- vuelve a mostrar el menu
         "2" -> do
-            obtenerPresupuesto estado
-            menuPresupuestos estado
+            obtenerPresupuesto estado -- envia el estado 
+            menuPresupuestos estado -- regresa al menu
         "3" -> do
             mostrarTodosPresupuestos estado
             menuPresupuestos estado
@@ -48,64 +48,67 @@ menuPresupuestos estado = do
 -----------------------------------------------------------------------------------------------------------------------
 -- funcion para definir el presupuesto 
 
-definirPresupuestoIO :: EstadoSistema -> IO EstadoSistema
+definirPresupuestoIO :: EstadoSistema -> IO EstadoSistema -- recibe estado y lo devuelve actualizado
 definirPresupuestoIO estado = do
     putStrLn "\n--- Definir nuevo presupuesto ---"
-
+    --llama a las funciones que ingresan y validan datos 
     categoria <- leerCategoria
     monto     <- leerMonto
     mes       <- leerMes
     anio      <- leerAnio
 
-    let nuevo = crearPresupuesto categoria monto mes anio
+    let nuevo = crearPresupuesto categoria monto mes anio --crea el nuevo presupuesto 
 
-    if existePresupuesto nuevo (presupuestos estado)
+    if existePresupuesto nuevo (presupuestos estado) --verfica si ya existe un presupuesto con los mismo datos envia el nuevo y la lista de presupuestos
         then do
             putStrLn " Ya existe un presupuesto para esa categoría y periodo"
             putStrLn "¿Desea reemplazarlo? (s/n)"
-            opcion <- getLine
+            opcion <- getLine --lee la opcion 
 
             if opcion == "s"
                 then do
-                    let estadoNuevo = reemplazarPresupuesto nuevo estado
+                    let estadoNuevo = reemplazarPresupuesto nuevo estado -- llama a la funcion que remplaza con el nuevo presupuesto
                     putStrLn "Presupuesto reemplazado correctamente"
-                    return estadoNuevo
+                    return estadoNuevo -- devuelve estado actualizado 
                 else do
                     putStrLn "No se realizaron cambios"
                     return estado
         else do
-            let estadoNuevo = estado { presupuestos = nuevo : presupuestos estado }
+            let estadoNuevo = estado { presupuestos = nuevo : presupuestos estado } -- actualiza el campo de registros y agrega el presupuesto a la lista
             putStrLn "Presupuesto agregado correctamente"
             return estadoNuevo
 
 
+-- obtiene la informacion de un presupuesto en especifico 
 obtenerPresupuesto :: EstadoSistema -> IO ()
 obtenerPresupuesto estado = do 
     putStrLn "\nIngrese la informacion del presupuesto"
-
+    -- llama a las funciones que ingresan datos y validan 
     categoria <- leerCategoria
     mes       <- leerMes
     anio      <- leerAnio
 
-    let resultado = buscarPresupuestoUnico categoria mes anio estado
+    let resultado = buscarPresupuestoUnico categoria mes anio estado -- llama a la funcion que busca el presupueto
     putStrLn  "\n"
 
     case resultado of
-        Just p  -> putStrLn (mostrarPresupuesto p)
+        Just p  -> putStrLn (mostrarPresupuesto p) -- si encontro un presupuesto con esos datos lo muestra
         Nothing -> putStrLn "No se encontró el presupuesto" 
+
+
 
 -- calcular los gastos en un periodo determinado 
 obtenerGasto :: String -> Int -> Int -> EstadoSistema -> Double
 obtenerGasto categoria mes anio estado =
-    let listaRegistros = registros estado
-        r1 = filtrarPorTipo Gasto listaRegistros
-        r2 = filtrarPorCategoria categoria r1
-        r3 = filtrarPorMes mes anio r2
-        total = totalMonto r3
+    let listaRegistros = registros estado -- obtiene la lista de registros financieros
+        r1 = filtrarPorTipo Gasto listaRegistros -- obtiene los registro de tipo gasto
+        r2 = filtrarPorCategoria categoria r1 -- filtra solo los de la categoria
+        r3 = filtrarPorMes mes anio r2 -- trae los registros filtrados que coicida el mes y año
+        total = totalMonto r3 -- se suman los montos de todos los registro del filtro
     in total -- duelve el total 
 
 
-
+-- funcion para comparar el presupuesto con los datos reales
 compararPresupuesto ::  EstadoSistema -> IO()
 compararPresupuesto  estado = do 
     putStrLn "\n Ingrese los datos para realizar la comparacion de Gastos VS Presupuesto"
@@ -115,19 +118,19 @@ compararPresupuesto  estado = do
 
     
     let monto =
-            case buscarPresupuestoUnico categoria mes anio estado of
-                Just p  -> montoMaximo p
-                Nothing -> 0
+            case buscarPresupuestoUnico categoria mes anio estado of -- busca un presupuesto en especifico 
+                Just p  -> montoMaximo p -- obtiene el monto del presupuesto que encontro
+                Nothing -> 0 -- no existe ese presupuesto 
 
-    if monto ==0 
+    if monto ==0  -- si el presupuesto no existe 
         then do
             putStrLn "No se encontró el presupuesto"
             putStrLn "Presione ENTER para volver al menú"
             _ <- getLine
             return ()
     else do
-        let gasto = obtenerGasto categoria mes anio estado
-        if gasto > monto
+        let gasto = obtenerGasto categoria mes anio estado --obtiene cuanto ha castado en esa categoria en el mes y año 
+        if gasto > monto-- se excedio el presupuesto 
             then do
                 putStrLn "\n Ha excedido su presupuesto\n"
                 putStrLn ("Su presupuesto es: " ++ show monto)
@@ -143,82 +146,91 @@ compararPresupuesto  estado = do
 
 
 
-
+-- funcion para generar una alerta si la persona excedio su presupuesto despues de un registro de gasto 
 verificarAlertaPresupuesto :: String -> Int -> Int -> EstadoSistema -> IO()
 verificarAlertaPresupuesto categoria mes anio estado = do 
-    
 
-    
     let monto =
-            case buscarPresupuestoUnico categoria mes anio estado of
-                Just p  -> montoMaximo p
+            case buscarPresupuestoUnico categoria mes anio estado of -- busca un presupuesto en especifico 
+                Just p  -> montoMaximo p -- si existe el presupuesto y obtiene el monto maximo
                 Nothing -> 0
 
-    if monto /= 0
+    if monto /= 0 -- si existe un presupuesto con los datos 
         then do
-            let gasto = obtenerGasto categoria mes anio estado
-            if gasto > monto
+            let gasto = obtenerGasto categoria mes anio estado -- obtiene el total de gasto 
+            if gasto > monto -- excedio el presupuesto 
                 then do
-                     putStrLn "ALERTA "
+                    putStrLn "ALERTA "
                     putStrLn "Ha excedido su presupuesto"
                     putStrLn ("Categoria de presupuesto: " ++ show categoria)
                     putStrLn ("Su presupuesto es: " ++ show monto)
                     putStrLn ("Sus gastos han sido: " ++ show gasto)
                     putStrLn ("Se excedió por: " ++ show (gasto - monto))
             else
-                return ()
+                return () -- no lo excedio no hace nada
     else do
-        return ()         
+        return ()    -- no hay presupuesto no hace nada 
+
 ---------------------------------------------------------------------------------------------------------------------------------
 -- FUNCIONES auxiliares
 
 -- Crear presupuesto
 crearPresupuesto :: String -> Double -> Int -> Int -> Presupuesto  -- construye el dato
 crearPresupuesto cat monto mes anio =
-    Presupuesto cat monto mes anio
+    Presupuesto cat monto mes anio -- crea el nuevo presupuesto
+
 
 
 -- validar duplicados
 
 existePresupuesto :: Presupuesto -> [Presupuesto] -> Bool
 existePresupuesto nuevo lista =
-    any (\p ->
-        map toLower (presupuestoCategoria p) == map toLower (presupuestoCategoria nuevo) &&
-        periodoMes p == periodoMes nuevo &&
-        periodoAnio p == periodoAnio nuevo
+    any (\p -> -- recorre la lista  -- devuelve true si uno cumple la condicion 
+        map toLower (presupuestoCategoria p) == map toLower (presupuestoCategoria nuevo) && -- convirte a minusculas y compara las categorias 
+        periodoMes p == periodoMes nuevo && -- compara el mes del nuevo con el p 
+        periodoAnio p == periodoAnio nuevo -- compara el año 
     ) lista
 
 
--- Agregar presupuesto al estado
-agregarPresupuesto :: Presupuesto -> EstadoSistema -> (EstadoSistema, Bool)
-agregarPresupuesto p estado =
-    if existePresupuesto p (presupuestos estado)
-        then (estado, False)  -- no se agrega
-        else (estado { presupuestos = p : presupuestos estado }, True)
 
+-- Agregar presupuesto al estado
+--agregarPresupuesto :: Presupuesto -> EstadoSistema -> (EstadoSistema, Bool)
+--agregarPresupuesto p estado =
+    --if existePresupuesto p (presupuestos estado)
+      --  then (estado, False)  -- no se agrega
+       -- else (estado { presupuestos = p : presupuestos estado }, True)
+
+
+-- busca un presupuesto en especifico 
 buscarPresupuestoUnico :: String -> Int -> Int -> EstadoSistema -> Maybe Presupuesto
 buscarPresupuestoUnico categoria mes anio estado =
-  case filter (\p ->
+  case filter (\p -> -- filtra los que cumplen la condicion 
+        -- para cada presupuesto p compara la categoria año y mes ignorando las mayusculas 
         map toLower (presupuestoCategoria p) == map toLower categoria &&
         periodoMes p == mes &&
         periodoAnio p == anio
-       ) (presupuestos estado) of
+       ) (presupuestos estado) of -- obtiene la lista de presupuestos
 
     [p] -> Just p     -- encontró exactamente uno
     []  -> Nothing    -- no encontró ninguno
 
 
-reemplazarPresupuesto :: Presupuesto -> EstadoSistema -> EstadoSistema
+
+
+reemplazarPresupuesto :: Presupuesto -> EstadoSistema -> EstadoSistema -- devuelve el estado actulizado 
 reemplazarPresupuesto nuevo estado =
-    estado {
-        presupuestos = nuevo : filter (\p ->
-            not (
+    estado { -- se va a actulizar la lista de prespuestos 
+        presupuestos = nuevo : filter (\p -> -- recorre los presupuestos actuales  y elimina el que quiere remplazar 
+            not (-- por cada elemento p ve si coincide y lo elimina
                 map toLower (presupuestoCategoria p) == map toLower (presupuestoCategoria nuevo) &&
                 periodoMes p == periodoMes nuevo &&
                 periodoAnio p == periodoAnio nuevo
             )
         ) (presupuestos estado)
-    }
+    } -- quedan todos los demas presupuestos y el que se añadio 
+
+
+-- muestra la informacion de un presupuesto 
 mostrarPresupuesto :: Presupuesto -> String
 mostrarPresupuesto p =
 
@@ -227,15 +239,22 @@ mostrarPresupuesto p =
     "Mes: " ++ show (periodoMes p) ++ "\n" ++
     "Año: " ++ show (periodoAnio p)
 
+
+
+
 mostrarTodosPresupuestos :: EstadoSistema -> IO ()
 mostrarTodosPresupuestos estado = do
-    let lista = presupuestos estado
+    let lista = presupuestos estado -- obtiene la lista de presupuestos 
 
     if null lista
         then putStrLn "No hay presupuestos registrados."
         else do
             putStrLn "\n--- Lista de presupuestos ---"
-            putStrLn (unlines (map mostrarPresupuesto lista))
+            putStrLn (unlines (map mostrarPresupuesto lista)) -- aplica la funcion de mostrar a cada elementos
+            -- unlines convierte una lista de strings en uno slo con saltos
+
+
+
 -- =========================================================
 -- VALIDACIÓN
 -- =========================================================
