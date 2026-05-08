@@ -20,7 +20,7 @@ import Registro
 import Persistencia
 import Presupuesto
 import MenuAnalisis (menuAnalisis)
-
+import Reportes (menuReportes)
 
 
 -- ============================================================
@@ -78,7 +78,6 @@ menuPrincipal estado = do
             guardarEstado nuevoEstado
             menuPrincipal nuevoEstado
         "2" -> do
-            putStrLn "(Modulo de Presupuestos - Persona 2)"
             nuevoEstado <- menuPresupuestos estado
             menuPrincipal nuevoEstado
            
@@ -86,8 +85,8 @@ menuPrincipal estado = do
             nuevoEstado <- menuAnalisis estado
             menuPrincipal nuevoEstado
         "4" -> do
-            putStrLn "(Modulo de Reportes - Persona 4)"
-            menuPrincipal estado
+            nuevoEstado <- menuReportes estado
+            menuPrincipal nuevoEstado
         "0" ->
             return estado
         _   -> do

@@ -51,13 +51,13 @@ menuRegistros estado = do
     putStrLn "╠══════════════════════════════════╣"
     putStrLn "║  1. Registrar ingreso            ║"
     putStrLn "║  2. Registrar gasto              ║"
-    --putStrLn "║  3. Registrar ahorro             ║"
-   -- putStrLn "║  4. Registrar inversion          ║"
-    putStrLn "║  3. Ver todos los registros      ║"
-    putStrLn "║  4. Buscar por categoria         ║"
-    putStrLn "║  5. Ver registros por mes        ║"
-    putStrLn "║  6. Eliminar un registro         ║"
-    putStrLn "║  7. Ver resumen de totales       ║"
+    putStrLn "║  3. Registrar ahorro             ║"
+    putStrLn "║  4. Registrar inversion          ║"
+    putStrLn "║  5. Ver todos los registros      ║"
+    putStrLn "║  6. Buscar por categoria         ║"
+    putStrLn "║  7. Ver registros por mes        ║"
+    putStrLn "║  8. Eliminar un registro         ║"
+    putStrLn "║  9. Ver resumen de totales       ║"
     putStrLn "║  0. Volver al menu principal     ║"
     putStrLn "╚══════════════════════════════════╝"
     putStr "Elige una opcion: "
@@ -100,7 +100,7 @@ menuRegistros estado = do
             putStrLn (resumenTotales (registros estado))
             menuRegistros estado
         "0" -> do
-            putStrLn "Volviendo al menu principal..."
+            putStrLn "Volviendo al menu principal."
             return estado
             -- 'return' en Haskell NO detiene la funcion. Simplemente envuelve un valor
             -- en el tipo IO para poder devolverlo.
