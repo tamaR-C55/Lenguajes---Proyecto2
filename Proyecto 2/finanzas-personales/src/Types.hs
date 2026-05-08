@@ -154,7 +154,7 @@ mostrarTipo :: TipoRegistro -> String
 mostrarTipo Ingreso   = "Ingreso"
 mostrarTipo Gasto     = "Gasto"
 mostrarTipo Ahorro    = "Ahorro"
-mostrarTipo Inversion = "Inversión"
+mostrarTipo Inversion = "Inversion"
 -- Esto se llama "pattern matching": Haskell ve qué valor tiene el TipoRegistro y devuelve el texto correspondiente.
 -- Es como un switch/case pero más elegante y seguro.
 
@@ -219,3 +219,17 @@ fechaAnterior f1 f2
 -- Los 'guards' (|) son como condiciones if/else encadenadas.
 -- Haskell evalúa de arriba hacia abajo hasta encontrar True.
 -- 'otherwise' es el caso por defecto (como el else final).
+
+
+
+-- Tipos de datos adicionales para la sección de simulación
+
+type Monto = Double
+
+data Periodo = Periodo
+    {mesPeriodo :: Int,  -- Mes del año (1-12)
+     anioPeriodo :: Int  -- Año completo (ej: 2025)
+    } deriving (Show, Read, Eq)
+
+type EstadoFinanciero = EstadoSistema
+type Categoria = String

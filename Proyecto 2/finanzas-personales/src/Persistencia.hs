@@ -1,5 +1,5 @@
--- Módulo de persistencia 
--- Este módulo se encarga de:
+-- Modulo de persistencia 
+-- Este modulo se encarga de:
 --   Guardar el EstadoSistema completo en un archivo
 --   Cargar el EstadoSistema desde el archivo al iniciar
 --   Crear el archivo si no existe (primera vez)
@@ -32,14 +32,14 @@ import System.IO
 import System.Directory (doesFileExist, createDirectoryIfMissing)
 
 -- Control.Exception nos permite capturar errores en tiempo
--- de ejecución (como archivo corrupto) sin que el programa
+-- de ejecucion (como archivo corrupto) sin que el programa
 -- se cierre abruptamente
 import Control.Exception (catch, SomeException, evaluate)
 
 -- SECCIÓN 2: CONFIGURACIÓN DE RUTAS
 
 -- Definimos las rutas del archivo y la carpeta como
--- constantes para poder cambiarlas fácilmente en un
+-- constantes para poder cambiarlas facilmente en un
 -- solo lugar si fuera necesario.
 -- ============================================================
 
@@ -59,14 +59,14 @@ archivoEstado = carpetaDatos ++ "/registros.txt"
 
 -- 'show estado' produce un String que representa el estado
 -- completo, incluyendo todos los registros, presupuestos
--- y reglas. Ese texto puede ser leído de vuelta con 'read'.
+-- y reglas. Ese texto puede ser leido de vuelta con 'read'.
 -- ============================================================
 
 guardarEstado :: EstadoSistema -> IO ()
--- IO () → hace entrada/salida pero no devuelve valor útil
+-- IO () → hace entrada/salida pero no devuelve valor util
 guardarEstado estado = do
 
-    -- Paso 1: Crear la carpeta "data/" si no existe todavía
+    -- Paso 1: Crear la carpeta "data/" si no existe todavia
     -- True = crear carpetas intermedias si hacen falta
     createDirectoryIfMissing True carpetaDatos
 
@@ -75,7 +75,7 @@ guardarEstado estado = do
     -- Esto es correcto porque guardamos el estado COMPLETO cada vez
     handle <- openFile archivoEstado WriteMode
     -- 'handle' es como un "puntero" al archivo abierto.
-    -- Todas las operaciones de escritura van a través de él.
+    -- Todas las operaciones de escritura van a traves de el.
 
     -- Paso 3: Establecer el encoding a UTF-8
     -- Importante para que los caracteres especiales se guarden correctamente
@@ -85,7 +85,7 @@ guardarEstado estado = do
     hPutStrLn handle (show estado)
     -- 'show estado' convierte el EstadoSistema completo a String.
     
-    -- hPutStrLn escribe texto en el archivo con salto de línea.
+    -- hPutStrLn escribe texto en el archivo con salto de linea.
 
     -- Paso 5: Cerrar el archivo
     hClose handle
@@ -96,8 +96,8 @@ guardarEstado estado = do
 -- SECCIÓN 4: CARGAR EL ESTADO DESDE ARCHIVO
 
 -- Lee el archivo y reconstruye el EstadoSistema con 'read'.
--- Si el archivo no existe o está corrupto, devuelve
--- un estado vacío para que el programa pueda arrancar.
+-- Si el archivo no existe o esta corrupto, devuelve
+-- un estado vacio para que el programa pueda arrancar.
 -- ============================================================
 
 cargarEstado :: IO EstadoSistema
@@ -111,7 +111,7 @@ cargarEstado = do
     if not existe
         then do
             -- Primera vez que se ejecuta el programa:
-            -- no hay archivo todavía, empezamos con estado vacío
+            -- no hay archivo todavia, empezamos con estado vacio
             putStrLn "Archivo de datos no encontrado."
             putStrLn "Iniciando con un sistema nuevo."
             return estadoVacio
@@ -123,8 +123,8 @@ cargarEstado = do
             return resultado
 
 
--- Función auxiliar que carga el archivo y maneja posibles errores
--- Separamos esto para poder usar 'catch' con más claridad
+-- Funcion auxiliar que carga el archivo y maneja posibles errores
+-- Separamos esto para poder usar 'catch' con mas claridad
 cargarConManejo :: IO EstadoSistema
 cargarConManejo = do
 
@@ -137,14 +137,14 @@ cargarConManejo = do
     -- Leemos todo el contenido del archivo como un String
     contenido <- hGetContents handle
     -- hGetContents lee el archivo completo de una vez.
-    -- Haskell usa "lazy evaluation" (evaluación perezosa), lo que significa que el contenido no se lee realmente
+    -- Haskell usa "lazy evaluation" (evaluacion perezosa), lo que significa que el contenido no se lee realmente
     -- hasta que lo necesitemos. Por eso usamos 'evaluate' abajo para forzar la lectura antes de cerrar el archivo.
 
-    -- Forzamos la evaluación completa del contenido antes de cerrar el archivo 
+    -- Forzamos la evaluacion completa del contenido antes de cerrar el archivo 
     contenidoForzado <- evaluate (length contenido) >>
                         return contenido
     -- 'evaluate (length contenido)' fuerza que todo el String
-    -- sea leído desde el disco. Luego 'return contenido' lo devuelve para que podamos usarlo.
+    -- sea leido desde el disco. Luego 'return contenido' lo devuelve para que podamos usarlo.
 
     -- Cerramos el archivo
     hClose handle
@@ -153,7 +153,7 @@ cargarConManejo = do
     -- usando 'read', que es el inverso de 'show'
     catch
         (do
-            -- 'reads' es más seguro que 'read':
+            -- 'reads' es mas seguro que 'read':
             -- devuelve [(valor, restoDelString)] en vez de fallar
             case reads contenidoForzado :: [(EstadoSistema, String)] of
                 [(estado, _)] -> do
@@ -163,39 +163,39 @@ cargarConManejo = do
                               " registro(s) encontrado(s).")
                     return estado
                 _ -> do
-                    -- El archivo existe pero el formato no es válido
-                    putStrLn "Advertencia: el archivo de datos está en un"
+                    -- El archivo existe pero el formato no es valido
+                    putStrLn "Advertencia: el archivo de datos esta en un"
                     putStrLn "formato no reconocido. Iniciando desde cero."
                     return estadoVacio)
 
-        -- Si ocurre CUALQUIER excepción durante la lectura,
-        -- capturamos el error aquí y devolvemos estado vacío
+        -- Si ocurre CUALQUIER excepcion durante la lectura,
+        -- capturamos el error aqui y devolvemos estado vacio
         (\e -> do
             let _ = e :: SomeException
             -- Le decimos a Haskell que 'e' es de tipo SomeException
-            -- para que el compilador sepa qué tipo de error capturamos
+            -- para que el compilador sepa que tipo de error capturamos
             putStrLn "Error al leer el archivo de datos."
-            putStrLn "Es posible que el archivo esté dañado."
+            putStrLn "Es posible que el archivo este dañado."
             putStrLn "Iniciando con un sistema nuevo."
             return estadoVacio)
 
 
 -- SECCIÓN 5: GUARDADO AUTOMÁTICO
 
--- Esta función envuelve cualquier operación que modifique
--- el estado y guarda automáticamente al terminar.
--- La usan los otros módulos para no tener que acordarse de llamar a guardarEstado manualmente.
+-- Esta funcion envuelve cualquier operacion que modifique
+-- el estado y guarda automaticamente al terminar.
+-- La usan los otros modulos para no tener que acordarse de llamar a guardarEstado manualmente.
 -- ============================================================
 
--- Ejecuta una acción que modifica el estado y guarda el resultado
--- recibe el estado actual y una función que lo transforma,
+-- Ejecuta una accion que modifica el estado y guarda el resultado
+-- recibe el estado actual y una funcion que lo transforma,
 -- guarda el nuevo estado y lo devuelve
 guardarTrasAccion :: EstadoSistema -> IO EstadoSistema -> IO EstadoSistema
 guardarTrasAccion _ accion = do
     nuevoEstado <- accion
-    -- Ejecutamos la acción que modifica el estado
+    -- Ejecutamos la accion que modifica el estado
     guardarEstado nuevoEstado
-    -- Guardamos el resultado automáticamente
+    -- Guardamos el resultado automaticamente
     return nuevoEstado
     -- Devolvemos el nuevo estado para que el programa lo use
 
@@ -209,12 +209,12 @@ hayDatosGuardados :: IO Bool
 hayDatosGuardados = doesFileExist archivoEstado
 
 
--- Muestra información sobre el archivo guardado
+-- Muestra informacion sobre el archivo guardado
 infoArchivo :: IO ()
 infoArchivo = do
     existe <- doesFileExist archivoEstado
     if not existe
-        then putStrLn "No hay archivo de datos guardado todavía."
+        then putStrLn "No hay archivo de datos guardado todavia."
         else do
             handle   <- openFile archivoEstado ReadMode
             hSetEncoding handle utf8
@@ -227,12 +227,12 @@ infoArchivo = do
 
 -- SECCIÓN 7: EXPLICACIÓN DE CÓMO FUNCIONA show/read
 
--- Esta sección es solo comentario educativo para entender
+-- Esta seccion es solo comentario educativo para entender
 -- la estrategia de persistencia que usamos.
 
 -- Cuando llamamos: guardarEstado miEstado
 --
--- 'show miEstado' produce algo así en el archivo:
+-- 'show miEstado' produce algo asi en el archivo:
 --
 --   EstadoSistema {
 --     registros = [
