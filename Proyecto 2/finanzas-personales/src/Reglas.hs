@@ -673,7 +673,8 @@ obtenerTotalAhorro estado =
 
         -- Solo registros de ahorro
         ahorros =
-            filter (\r -> tipo r == Ahorro) listaRegistros
+            --filter (\r -> tipo r == Ahorro) listaRegistros
+            filter (\r -> categoria r == "Ahorro") listaRegistros
 
     in
 

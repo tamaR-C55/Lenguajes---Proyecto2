@@ -21,7 +21,7 @@ module Registro where
 -- ============================================================
 
 import Types
-import Data.List  (intercalate, sortBy)
+import Data.List  (sortBy)
 import Data.Ord   (comparing)
 import Data.Char  (toLower)
 -- Data.Char nos da 'toLower' para convertir letras a minusculas
@@ -40,37 +40,24 @@ import Reglas
 
 -- IO () significa que esta funcion hace entrada/salida
 -- ============================================================
-
 menuRegistros :: EstadoSistema -> IO EstadoSistema
--- Recibe el estado actual y devuelve el estado actualizado
--- despues de que el usuario haga lo que quiera hacer.
 menuRegistros estado = do
-    -- 'do' nos permite escribir acciones de IO en secuencia,
     putStrLn ""
-    putStrLn "╔══════════════════════════════════╗"
-    putStrLn "║      GESTIoN DE REGISTROS        ║"
-    putStrLn "╠══════════════════════════════════╣"
-    putStrLn "║  1. Registrar ingreso            ║"
-    putStrLn "║  2. Registrar gasto              ║"
-    putStrLn "║  3. Registrar ahorro             ║"
-    putStrLn "║  4. Registrar inversion          ║"
-    putStrLn "║  5. Ver todos los registros      ║"
-    putStrLn "║  6. Buscar por categoria         ║"
-    putStrLn "║  7. Ver registros por mes        ║"
-    putStrLn "║  8. Eliminar un registro         ║"
-    putStrLn "║  9. Ver resumen de totales       ║"
-    putStrLn "║  0. Volver al menu principal     ║"
-    putStrLn "╚══════════════════════════════════╝"
+    putStrLn "======================================"
+    putStrLn "       GESTION DE REGISTROS"
+    putStrLn "======================================"
+    putStrLn "  1. Registrar ingreso"
+    putStrLn "  2. Registrar gasto"
+    putStrLn "  3. Ver todos los registros"
+    putStrLn "  4. Buscar por categoria"
+    putStrLn "  5. Ver registros por mes"
+    putStrLn "  6. Eliminar un registro"
+    putStrLn "  0. Volver al menu principal"
+    putStrLn "======================================"
     putStr "Elige una opcion: "
     hFlush stdout
-    -- hFlush stdout es necesario aqui porque putStr (sin salto
-    -- de linea) no siempre se muestra antes de que getLine
-    -- espere la entrada del usuario en Windows.
 
     opcion <- getLine
-    -- 'getLine' lee una linea de texto del teclado
-    -- '<-' extrae el valor del IO y lo guarda en 'opcion'
-    -- Despues del '<-', opcion es un String normal
 
     case opcion of
         "1" -> do
@@ -80,42 +67,27 @@ menuRegistros estado = do
             nuevoEstado <- pedirRegistro estado Gasto
             menuRegistros nuevoEstado
         "3" -> do
-            nuevoEstado <- pedirRegistro estado Ahorro
-            menuRegistros nuevoEstado
-        "4" -> do
-            nuevoEstado <- pedirRegistro estado Inversion
-            menuRegistros nuevoEstado
-        "5" -> do
             mostrarTodosLosRegistros (registros estado)
             menuRegistros estado
-        "6" -> do
+        "4" -> do
             nuevoEstado <- buscarPorCategoriaIO estado
             menuRegistros nuevoEstado
-        "7" -> do
+        "5" -> do
             mostrarPorMesIO (registros estado)
             menuRegistros estado
-        "8" -> do
+        "6" -> do
             nuevoEstado <- eliminarRegistroIO estado
             menuRegistros nuevoEstado
-        "9" -> do
-            putStrLn (resumenTotales (registros estado))
-            menuRegistros estado
         "0" -> do
-            putStrLn "Volviendo al menu principal."
+            putStrLn "Volviendo al menu principal..."
             return estado
-            -- 'return' en Haskell NO detiene la funcion. Simplemente envuelve un valor
-            -- en el tipo IO para poder devolverlo.
-        _   -> do
+        _ -> do
             putStrLn "Opcion no valida. Intenta de nuevo."
             menuRegistros estado
-            -- '_' Si el usuario escribe algo que no es 0-9, llega aqui
 
 
--- SECCIoN 3: PEDIR DATOS PARA UN NUEVO REGISTRO
-
--- Esta funcion le pregunta al usuario todos los datos necesarios para crear un registro financiero completo.
-
--- Usa IO para leer del teclado y valida cada campo.
+-- ============================================================
+-- PEDIR DATOS PARA UN NUEVO REGISTRO
 -- ============================================================
 
 pedirRegistro :: EstadoSistema -> TipoRegistro -> IO EstadoSistema
@@ -123,50 +95,41 @@ pedirRegistro estado t = do
     putStrLn ""
     putStrLn ("--- Nuevo " ++ mostrarTipo t ++ " ---")
 
-    -- PASO 1: Pedir el monto
+    -- PASO 1: Categoria con opciones numeradas
+    -- En vez de que el usuario escriba lo que quiera,
+    -- le mostramos las opciones disponibles y elige un numero.
+    cat <- pedirCategoria t
+
+    -- PASO 2: Monto
     m <- pedirMonto
-    -- pedirMonto verifica que sea un numero valido mayor a cero.
 
-    -- PASO 2: Pedir la categoria
-    putStr "Categoria (Alimentacion, Salario, Renta, Ahorros, inversiones): "
-    hFlush stdout
-    cat <- getLine
-
-    -- PASO 3: Pedir la fecha
+    -- PASO 3: Fecha
     putStrLn "Fecha del registro:"
-    hFlush stdout
     f <- pedirFecha
-    -- pedirFecha le pide dia, mes y año por separado
 
-    -- PASO 4: Pedir la descripcion
+    -- PASO 4: Descripcion
     putStr "Descripcion: "
     hFlush stdout
     desc <- getLine
 
-    -- PASO 5: Pedir las etiquetas
+    -- PASO 5: Etiquetas
     putStrLn "Etiquetas separadas por coma (ej: fijo,variable,mensual)"
     putStr "Etiquetas (o Enter para ninguna): "
     hFlush stdout
     linea <- getLine
     let tags = parsearEtiquetas linea
-    -- 'let' dentro de un bloque 'do' define un valor local
-    -- sin necesidad de hacer IO (no lee ni imprime nada).
-    -- parsearEtiquetas convierte "fijo,variable" en ["fijo","variable"]
 
     -- PASO 6: Validar y guardar
     case validarRegistro m cat desc of
         Left errorMsg -> do
-            -- Left significa que validarRegistro encontro un error
             putStrLn ("Error: " ++ errorMsg)
             putStrLn "Intenta registrar de nuevo."
             return estado
-            -- Devolvemos el estado sin cambios
 
         Right () -> do
-            -- Right () significa que todo esta bien, guardamos
-            let rsActuales     = registros estado
-                nuevoId        = siguienteId rsActuales
-                nuevoRegistro  = RegistroFinanciero
+            let rsActuales    = registros estado
+                nuevoId       = siguienteId rsActuales
+                nuevoRegistro = RegistroFinanciero
                     { registroId  = nuevoId
                     , tipo        = t
                     , monto       = m
@@ -175,122 +138,90 @@ pedirRegistro estado t = do
                     , descripcion = desc
                     , etiquetas   = tags
                     }
-                rsActualizados = rsActuales ++ [nuevoRegistro]
-                -- Agregamos el nuevo registro al final de la lista.
-                -- (++) concatena dos listas. [nuevoRegistro] es una
-                -- lista con un solo elemento.
-                nuevoEstado    = estado { registros = rsActualizados }
-                -- estado { registros = ... } es "record update syntax":
-                -- crea un estado nuevo igual al anterior pero con
-                -- el campo 'registros' reemplazado por rsActualizados.
+                nuevoEstado   = estado { registros = rsActuales ++ [nuevoRegistro] }
 
             putStrLn ""
-            putStrLn (" " ++ mostrarTipo t ++ " registrado exitosamente.")
+            putStrLn "Registro guardado exitosamente!"
             putStrLn ("  ID:        " ++ show nuevoId)
-            putStrLn ("  Monto:     " ++ show m)
+            putStrLn ("  Tipo:      " ++ mostrarTipo t)
             putStrLn ("  Categoria: " ++ cat)
+            putStrLn ("  Monto:     " ++ show m)
             putStrLn ("  Fecha:     " ++ mostrarFecha f)
             putStrLn ("  Etiquetas: " ++ mostrarEtiquetas tags)
-
-            
-            -- VERIFICAR ALERTAS Y REGLAS
-            
-
-            case t of
-
-                -- =====================================
-                -- GASTOS
-                -- =====================================
-
-                Gasto -> do
-
-                    let mesRegistro  = mes f
-                    let anioRegistro = anio f
-
-                    -- Verificar presupuesto
-                    verificarAlertaPresupuesto
-                        cat
-                        mesRegistro
-                        anioRegistro
-                        nuevoEstado
-
-                    -- Verificar reglas de gasto
-                    verificarReglasGasto nuevoEstado
-
-                    return nuevoEstado
+            return nuevoEstado
 
 
+-- ============================================================
+-- PEDIR CATEGORIA CON OPCIONES NUMERADAS
+--
+-- Muestra la lista de categorias segun el tipo (Ingreso/Gasto)
+-- y el usuario solo escoge el numero.
+-- Esto garantiza que los nombres de categorias sean consistentes,
+-- lo que es necesario para que los presupuestos funcionen bien.
+-- ============================================================
 
-                -- =====================================
-                -- AHORROS
-                -- =====================================
+pedirCategoria :: TipoRegistro -> IO String
+pedirCategoria t = do
+    let cats = categoriasPorTipo t
+    -- categoriasPorTipo esta definida en Types.hs y devuelve
+    -- la lista correcta segun si es Ingreso o Gasto
+    putStrLn ("\nCategorias de " ++ mostrarTipo t ++ ":")
+    -- 'zip [1..] cats' empareja cada categoria con su numero:
+    -- [(1,"Salario"), (2,"Freelance"), ...]
+    -- 'mapM_' aplica la funcion a cada elemento de la lista en IO
+    mapM_ (\(n, c) -> putStrLn ("  " ++ show n ++ ". " ++ c))
+          (zip [1..] cats)
+    putStr "Elige el numero de categoria: "
+    hFlush stdout
+    linea <- getLine
+    case reads linea :: [(Int, String)] of
+        [(n, "")] ->
+            if n >= 1 && n <= length cats
+                then return (cats !! (n - 1))
+                -- (!!) accede al elemento en la posicion dada.
+                -- (n-1) porque las listas en Haskell empiezan en 0
+                -- pero le mostramos al usuario desde 1.
+                else do
+                    putStrLn ("Elige un numero entre 1 y " ++ show (length cats) ++ ".")
+                    pedirCategoria t
+        _ -> do
+            putStrLn "Opcion invalida. Escribe solo el numero."
+            pedirCategoria t
 
-                Ahorro -> do
 
-                    -- Verificar reglas de ahorro
-                    verificarReglasAhorro nuevoEstado
-
-                    return nuevoEstado
-
-
-
-                -- =====================================
-                -- OTROS TIPOS
-                -- =====================================
-
-                _ ->
-                    return nuevoEstado
-            
-
-
--- SECCIoN 4: PEDIR MONTO CON VALIDACIoN
--- Lee un numero y verifica que sea valido.
--- Si el usuario escribe letras u otro texto, le pide que lo intente de nuevo (usando recursion).
+-- ============================================================
+-- PEDIR MONTO CON VALIDACION
 -- ============================================================
 
 pedirMonto :: IO Double
 pedirMonto = do
-    putStr "Monto ( ): "
+    putStr "Monto: "
     hFlush stdout
-
     linea <- getLine
-    -- 'reads' intenta convertir un String a un tipo numerico.
-    -- Devuelve [(valor, restoDelString)].
-    -- Si el String no es un numero, devuelve lista vacia [].
     case reads linea :: [(Double, String)] of
         [(n, "")] ->
-            -- Se parseo bien y no quedo texto sobrante
             if n > 0
                 then return n
-                -- Numero valido, lo devolvemos con return
                 else do
                     putStrLn "El monto debe ser mayor a cero. Intenta de nuevo."
                     pedirMonto
-                    -- Recursion: volvemos a pedir
         _ -> do
-            -- El parseo fallo 
             putStrLn "Monto invalido. Escribe solo numeros (ej: 15000.50)."
             pedirMonto
 
 
--- SECCIoN 5: PEDIR FECHA CON VALIDACIoN
--- Le pide al usuario dia, mes y año por separado.
--- Valida que los valores esten en rangos correctos.
+-- ============================================================
+-- PEDIR FECHA CON VALIDACION
 -- ============================================================
 
 pedirFecha :: IO Fecha
 pedirFecha = do
     d <- pedirNumeroEnRango "  Dia   (1-31): " 1 31
     m <- pedirNumeroEnRango "  Mes   (1-12): " 1 12
-    a <- pedirNumeroEnRango "  Año   (ej: 2025): " 2000 2100
+    a <- pedirNumeroEnRango "  Anio  (ej: 2025): " 2000 2100
     return (Fecha d m a)
-    -- Construimos el tipo Fecha con los tres valores leidos.
-    -- Fecha esta definido como:
-    -- data Fecha = Fecha { dia :: Int, mes :: Int, anio :: Int }
 
-
--- Funcion auxiliar: pide un numero entero dentro de un rango
--- y vuelve a pedir si el numero esta fuera del rango o es invalido
+-- Pide un numero entero dentro de un rango, con recursion si es invalido
 pedirNumeroEnRango :: String -> Int -> Int -> IO Int
 pedirNumeroEnRango mensaje minVal maxVal = do
     putStr mensaje
@@ -309,87 +240,106 @@ pedirNumeroEnRango mensaje minVal maxVal = do
             pedirNumeroEnRango mensaje minVal maxVal
 
 
--- SECCIoN 6: PARSEAR ETIQUETAS
-
--- Convierte el texto "fijo,variable,mensual" en la lista
--- ["fijo", "variable", "mensual"].
-
--- Esto es procesamiento de texto puro sin IO.
--- Usamos recursion y pattern matching sobre caracteres.
+-- ============================================================
+-- PARSEAR ETIQUETAS
+-- Convierte "fijo,variable" en ["fijo","variable"]
 -- ============================================================
 
 parsearEtiquetas :: String -> [String]
 parsearEtiquetas "" = []
--- Caso base: texto vacio → lista vacia (sin etiquetas)
 parsearEtiquetas s  = map limpiar (dividirPorComa s)
   where
-    -- 'limpiar' quita espacios al inicio/final y pone en minusculas
-    -- El operador (.) encadena funciones de derecha a izquierda:
-    --   map toLower . quitarEspacios significa: primero aplica quitarEspacios, luego map toLower
-    limpiar = map toLower . quitarEspacios
-
-    -- Elimina espacios al inicio y al final de un String
+    limpiar        = map toLower . quitarEspacios
     quitarEspacios = reverse . dropWhile (== ' ') . reverse . dropWhile (== ' ')
-    -- dropWhile (== ' ') elimina espacios del inicio
-    -- reverse invierte el String para atacar tambien el final
-
-    -- Divide el String cada vez que encuentra una coma
-    dividirPorComa [] = [""]
-    -- Lista vacia, una lista con un String vacio
+    dividirPorComa []     = [""]
     dividirPorComa (c:cs)
         | c == ','  = "" : dividirPorComa cs
-        -- Si es coma: empezamos un nuevo String vacio al frente
         | otherwise = let (primera:resto) = dividirPorComa cs
                       in  (c:primera) : resto
-        -- Si no es coma: agregamos el caracter al String actual
 
 
--- SECCIoN 7: MOSTRAR REGISTROS EN PANTALLA
+-- ============================================================
+-- MOSTRAR TODOS LOS REGISTROS
+--
+-- Muestra el ID de cada registro claramente para que el
+-- usuario sepa que IDs existen (util antes de eliminar).
 -- ============================================================
 
--- Muestra todos los registros o avisa si no hay ninguno
 mostrarTodosLosRegistros :: [RegistroFinanciero] -> IO ()
 mostrarTodosLosRegistros [] =
     putStrLn "\nNo hay registros guardados todavia."
 mostrarTodosLosRegistros rs = do
     putStrLn ("\nTotal de registros: " ++ show (length rs))
-    -- 'mapM_' es el map para acciones IO.
-    -- Aplica la funcion a cada elemento de la lista en orden.
-    -- El '_' indica que descartamos el resultado de cada accion.
     mapM_ (\r -> do
         putStrLn ""
         putStrLn (mostrarRegistro r)) rs
 
 
--- Pide una categoria y muestra los registros que coincidan
+-- ============================================================
+-- BUSCAR POR CATEGORIA
+--
+-- Muestra las categorias que ya tienen registros guardados
+-- para que el usuario elija en vez de escribir a ciegas.
+-- ============================================================
+
 buscarPorCategoriaIO :: EstadoSistema -> IO EstadoSistema
 buscarPorCategoriaIO estado = do
-    putStr "\nBuscar categoria: "
-    hFlush stdout
-    cat <- getLine
-    let encontrados = filtrarPorCategoria cat (registros estado)
-    if null encontrados
-        then putStrLn ("No hay registros en la categoria '" ++ cat ++ "'.")
+    let rs = registros estado
+
+    if null rs
+        then do
+            putStrLn "\nNo hay registros guardados todavia."
+            return estado
         else do
-            putStrLn ("\nRegistros en '" ++ cat ++ "': " ++
-                      show (length encontrados))
-            mapM_ (\r -> do
-                putStrLn ""
-                putStrLn (mostrarRegistro r)) encontrados
-            putStrLn ("\nTotal en esta categoria: " ++
-                      show (totalPorCategoria cat (registros estado)))
-    return estado
+            -- Obtener categorias unicas que ya tienen registros
+            let cats = categoriasUnicas rs
+            -- categoriasUnicas usa foldr para construir la lista
+            -- sin duplicados (definida mas abajo)
+
+            putStrLn "\nCategorias con registros:"
+            mapM_ (\(n, c) -> putStrLn ("  " ++ show n ++ ". " ++ c))
+                  (zip [1..] cats)
+            putStr "Elige el numero de categoria (0 para cancelar): "
+            hFlush stdout
+            linea <- getLine
+
+            case reads linea :: [(Int, String)] of
+                [(0, "")] -> do
+                    putStrLn "Busqueda cancelada."
+                    return estado
+                [(n, "")] ->
+                    if n >= 1 && n <= length cats
+                        then do
+                            let catElegida  = cats !! (n - 1)
+                                encontrados = filtrarPorCategoria catElegida rs
+                            putStrLn ("\nRegistros en '" ++ catElegida ++ "': " ++
+                                      show (length encontrados))
+                            mapM_ (\r -> do
+                                putStrLn ""
+                                putStrLn (mostrarRegistro r)) encontrados
+                            putStrLn ("\nTotal en esta categoria: " ++
+                                      show (totalPorCategoria catElegida rs))
+                            return estado
+                        else do
+                            putStrLn "Numero invalido."
+                            return estado
+                _ -> do
+                    putStrLn "Opcion invalida."
+                    return estado
 
 
--- Pide mes y año, muestra registros de ese periodo
+-- ============================================================
+-- VER REGISTROS POR MES
+-- ============================================================
+
 mostrarPorMesIO :: [RegistroFinanciero] -> IO ()
 mostrarPorMesIO rs = do
     putStrLn "\n--- Ver registros por mes ---"
     m <- pedirNumeroEnRango "Mes (1-12): " 1 12
-    a <- pedirNumeroEnRango "Año: " 2000 2100
+    a <- pedirNumeroEnRango "Anio: " 2000 2100
     let encontrados = filtrarPorMes m a rs
     if null encontrados
-        then putStrLn "No hay registros para ese mes y año."
+        then putStrLn "No hay registros para ese mes y anio."
         else do
             putStrLn ("\nRegistros de " ++ show m ++ "/" ++ show a ++
                       ": " ++ show (length encontrados))
@@ -397,80 +347,104 @@ mostrarPorMesIO rs = do
                 putStrLn ""
                 putStrLn (mostrarRegistro r)) encontrados
             putStrLn "\n--- Totales del mes ---"
-            putStrLn ("Ingresos:    " ++ show (totalPorTipo Ingreso   encontrados))
-            putStrLn ("Gastos:      " ++ show (totalPorTipo Gasto     encontrados))
-            putStrLn ("Ahorros:     " ++ show (totalPorTipo Ahorro    encontrados))
-            putStrLn ("Inversiones: " ++ show (totalPorTipo Inversion encontrados))
+            putStrLn ("Ingresos: " ++ show (totalPorTipo Ingreso encontrados))
+            putStrLn ("Gastos:   " ++ show (totalPorTipo Gasto   encontrados))
 
 
--- Pide un ID y elimina ese registro con confirmacion
+-- ============================================================
+-- ELIMINAR REGISTRO
+--
+-- Primero muestra todos los registros con sus IDs para que
+-- el usuario pueda ver cual quiere eliminar, luego pide el ID.
+-- ============================================================
+
 eliminarRegistroIO :: EstadoSistema -> IO EstadoSistema
 eliminarRegistroIO estado = do
-    putStr "\nID del registro a eliminar: "
-    hFlush stdout
-    linea <- getLine
-    case reads linea :: [(Int, String)] of
-        [(idBuscar, "")] ->
-            case buscarPorId (registros estado) idBuscar of
-                Nothing -> do
-                    putStrLn ("No existe un registro con ID " ++ show idBuscar ++ ".")
-                    return estado
-                Just r  -> do
-                    putStrLn "\nVas a eliminar este registro:"
-                    putStrLn (mostrarRegistro r)
-                    putStr "¿Confirmar eliminacion? (s/n): "
-                    hFlush stdout
-                    conf <- getLine
-                    if map toLower conf == "s"
-                        then do
-                            let rsNuevos    = eliminarRegistro (registros estado) idBuscar
-                                nuevoEstado = estado { registros = rsNuevos }
-                            putStrLn "Registro eliminado correctamente."
-                            return nuevoEstado
-                        else do
-                            putStrLn "Eliminacion cancelada."
-                            return estado
-        _ -> do
-            putStrLn "ID invalido. Debe ser un numero entero."
+    let rs = registros estado
+
+    if null rs
+        then do
+            putStrLn "\nNo hay registros para eliminar."
             return estado
+        else do
+            -- Mostrar todos los registros con sus IDs primero
+            -- para que el usuario no tenga que adivinar
+            putStrLn "\n--- Registros existentes ---"
+            -- Mostramos un resumen compacto con ID, tipo y categoria
+            mapM_ (\r -> putStrLn (
+                "  ID " ++ show (registroId r) ++
+                " | " ++ mostrarTipo (tipo r) ++
+                " | " ++ categoria r ++
+                " | " ++ show (monto r) ++
+                " | " ++ mostrarFecha (fecha r)
+                )) rs
+
+            putStrLn ""
+            putStr "ID del registro a eliminar (0 para cancelar): "
+            hFlush stdout
+            linea <- getLine
+
+            case reads linea :: [(Int, String)] of
+                [(0, "")] -> do
+                    putStrLn "Eliminacion cancelada."
+                    return estado
+                [(idBuscar, "")] ->
+                    case buscarPorId rs idBuscar of
+                        Nothing -> do
+                            putStrLn ("No existe un registro con ID " ++
+                                      show idBuscar ++ ".")
+                            return estado
+                        Just r -> do
+                            -- Mostrar el registro completo antes de confirmar
+                            putStrLn "\nVas a eliminar este registro:"
+                            putStrLn (mostrarRegistro r)
+                            putStr "Confirmar eliminacion (s/n): "
+                            hFlush stdout
+                            conf <- getLine
+                            if map toLower conf == "s"
+                                then do
+                                    let rsNuevos    = eliminarRegistro rs idBuscar
+                                        nuevoEstado = estado { registros = rsNuevos }
+                                    putStrLn "Registro eliminado correctamente."
+                                    return nuevoEstado
+                                else do
+                                    putStrLn "Eliminacion cancelada."
+                                    return estado
+                _ -> do
+                    putStrLn "ID invalido. Debe ser un numero entero."
+                    return estado
 
 
--- SECCIoN 8: FUNCIONES PURAS DE DATOS
-
--- Estas funciones no tienen IO: solo transforman listas.
--- Las usan tambien los modulos de Analisis, Reportes y Reglas.
+-- ============================================================
+-- FUNCIONES PURAS DE DATOS
 -- ============================================================
 
 -- Genera el siguiente ID disponible
 siguienteId :: [RegistroFinanciero] -> Int
 siguienteId [] = 1
 siguienteId rs = maximum (map registroId rs) + 1
--- map registroId rs → extrae todos los IDs como lista de Int
--- maximum → devuelve el mayor
--- +1 → el siguiente disponible
 
--- Elimina un registro de la lista por su ID usando filter
+-- Elimina un registro por ID usando filter
 eliminarRegistro :: [RegistroFinanciero] -> Int -> [RegistroFinanciero]
 eliminarRegistro rs idBuscar = filter (\r -> registroId r /= idBuscar) rs
--- filter se queda con todos EXCEPTO el que tiene ese ID
 
--- Busca un registro por ID, devuelve Maybe (puede no existir)
+-- Busca un registro por ID, devuelve Maybe
 buscarPorId :: [RegistroFinanciero] -> Int -> Maybe RegistroFinanciero
 buscarPorId [] _ = Nothing
 buscarPorId (r:rs) idBuscar
     | registroId r == idBuscar = Just r
     | otherwise                = buscarPorId rs idBuscar
 
--- Filtra por tipo usando filter (funcion de orden superior)
+-- Filtra por tipo (Ingreso o Gasto)
 filtrarPorTipo :: TipoRegistro -> [RegistroFinanciero] -> [RegistroFinanciero]
 filtrarPorTipo t = filter (\r -> tipo r == t)
 
--- Filtra por categoria ignorando mayusculas/minusculas
+-- Filtra por categoria ignorando mayusculas
 filtrarPorCategoria :: String -> [RegistroFinanciero] -> [RegistroFinanciero]
 filtrarPorCategoria cat =
     filter (\r -> map toLower (categoria r) == map toLower cat)
 
--- Filtra por mes y año
+-- Filtra por mes y anio
 filtrarPorMes :: Int -> Int -> [RegistroFinanciero] -> [RegistroFinanciero]
 filtrarPorMes m a = filter (\r -> mismoMesAnio (fecha r) m a)
 
@@ -478,55 +452,60 @@ filtrarPorMes m a = filter (\r -> mismoMesAnio (fecha r) m a)
 filtrarPorEtiqueta :: String -> [RegistroFinanciero] -> [RegistroFinanciero]
 filtrarPorEtiqueta tag = filter (\r -> tag `elem` etiquetas r)
 
--- Suma todos los montos usando foldr (funcion de orden superior)
+-- Suma montos con foldr
 totalMonto :: [RegistroFinanciero] -> Double
 totalMonto = foldr (\r acc -> monto r + acc) 0.0
--- foldr recorre la lista de derecha a izquierda acumulando la suma
 
--- Total de un tipo especifico
+-- Total por tipo
 totalPorTipo :: TipoRegistro -> [RegistroFinanciero] -> Double
 totalPorTipo t rs = totalMonto (filtrarPorTipo t rs)
 
--- Total de una categoria especifica
+-- Total por categoria
 totalPorCategoria :: String -> [RegistroFinanciero] -> Double
 totalPorCategoria cat rs = totalMonto (filtrarPorCategoria cat rs)
 
--- Aplica descuento porcentual a todos los montos con map - para somulacion financiera
+-- Extrae montos con map
+obtenerMontos :: [RegistroFinanciero] -> [Double]
+obtenerMontos = map monto
+
+-- Aplica descuento porcentual con map (lo usa Persona 3)
 aplicarDescuento :: Double -> [RegistroFinanciero] -> [RegistroFinanciero]
 aplicarDescuento pct = map (\r -> r { monto = monto r * (1 - pct / 100) })
--- map transforma cada registro creando uno nuevo con el monto reducido
 
--- Ordena registros de mayor a menor monto para ordenar los registros de mayor a menor monto
+-- Ordena por monto descendente
 ordenarPorMontoDesc :: [RegistroFinanciero] -> [RegistroFinanciero]
 ordenarPorMontoDesc = sortBy (flip (comparing monto))
 
 -- Valida los datos antes de crear el registro
--- Devuelve Either: Left = error con mensaje, Right = todo bien
 validarRegistro :: Double -> String -> String -> Either String ()
 validarRegistro m cat desc
     | m   <= 0  = Left "El monto debe ser mayor a cero."
     | null cat  = Left "La categoria no puede estar vacia."
-    | null desc = Left "La descripcion no puede estar vacia."
     | otherwise = Right ()
 
--- Genera un resumen de totales formateado como tabla
+-- Obtiene lista de categorias unicas que ya tienen registros
+-- Usa foldr para construir la lista sin duplicados
+categoriasUnicas :: [RegistroFinanciero] -> [String]
+categoriasUnicas rs =
+    foldr (\r acc ->
+        let cat = categoria r
+        in if cat `elem` acc then acc else acc ++ [cat]
+    ) [] rs
+-- foldr recorre la lista de registros.
+-- Para cada registro revisa si su categoria ya esta en el acumulador.
+-- Si ya esta (elem) la ignora. Si no esta, la agrega al final.
+-- Resultado: lista de categorias sin repeticiones.
+
+-- Resumen de totales como texto
 resumenTotales :: [RegistroFinanciero] -> String
 resumenTotales rs =
-    "\n╔══════════════════════════════════════════╗\n"  ++
-    "║           RESUMEN FINANCIERO             ║\n"  ++
-    "╠══════════════════════════════════════════╣\n"  ++
-    "║ Ingresos:    " ++ pad (show ingresos)   ++ "║\n" ++
-    "║ Gastos:      " ++ pad (show gastos)     ++ "║\n" ++
-    "║ Ahorros:     " ++ pad (show ahorros)    ++ "║\n" ++
-    "║ Inversiones: " ++ pad (show inversiones)++ "║\n" ++
-    "╠══════════════════════════════════════════╣\n"  ++
-    "║ Balance neto: " ++ pad (show balance)    ++ "║\n" ++
-    "╚══════════════════════════════════════════╝"
+    "\n======================================\n" ++
+    "        RESUMEN FINANCIERO\n"               ++
+    "======================================\n"   ++
+    "Ingresos: " ++ show (totalPorTipo Ingreso rs) ++ "\n" ++
+    "Gastos:   " ++ show (totalPorTipo Gasto   rs) ++ "\n" ++
+    "--------------------------------------\n"   ++
+    "Balance:  " ++ show balance                   ++ "\n" ++
+    "======================================"
   where
-    ingresos    = totalPorTipo Ingreso   rs
-    gastos      = totalPorTipo Gasto     rs
-    ahorros     = totalPorTipo Ahorro    rs
-    inversiones = totalPorTipo Inversion rs
-    balance     = ingresos - gastos
-    -- Rellena con espacios a la derecha para alinear la tabla
-    pad s = take 26 (s ++ repeat ' ')
+    balance = totalPorTipo Ingreso rs - totalPorTipo Gasto rs

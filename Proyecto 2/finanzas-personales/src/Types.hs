@@ -18,8 +18,6 @@ import Data.List (intercalate)
 -- 4 tipos de registros:
 --   Ingreso
 --   Gasto
---   Ahorro
---   Inversión
 --
 -- Se define con data y se llama un
 -- "tipo algebraico de suma" porque el tipo TipoRegistro
@@ -28,9 +26,7 @@ import Data.List (intercalate)
 
 data TipoRegistro
     = Ingreso     -- Dinero que entra 
-    | Gasto       -- Dinero que sale 
-    | Ahorro      -- Dinero reservado para el futuro
-    | Inversion   -- Dinero puesto a trabajar 
+    | Gasto       -- Dinero que sale  
     deriving (Show, Read, Eq)
     -- 'deriving Show'  = convertir el valor a texto
     -- 'deriving Read'  = leer el valor desde texto
@@ -38,6 +34,49 @@ data TipoRegistro
     -- 'deriving Eq'    = Haskell puede comparar dos TipoRegistro
     --                    con (==) para saber si son iguales
 
+-- ============================================================
+-- CATEGORIAS DISPONIBLES
+--
+-- En vez de dejar que el usuario escriba lo que quiera,
+-- definimos listas fijas de categorias para cada tipo.
+-- Esto es importante para que los presupuestos por categoria
+-- funcionen correctamente (si el usuario escribe "alimentacion"
+-- una vez y "Alimentacion" otra vez, son categorias distintas
+-- y los presupuestos no matchean bien).
+-- ============================================================
+
+-- Categorias disponibles para ingresos
+categoriasIngreso :: [String]
+categoriasIngreso =
+    [ "Salario"       -- 1
+    , "Freelance"     -- 2
+    , "Ahorro"        -- 3  (retiro de ahorros = ingreso)
+    , "Inversion"     -- 4  (retorno de inversion = ingreso)
+    , "Pension"       -- 5
+    , "Regalo"        -- 6
+    , "Otro"          -- 7
+    ]
+
+-- Categorias disponibles para gastos
+categoriasGasto :: [String]
+categoriasGasto =
+    [ "Alimentacion"  -- 1
+    , "Transporte"    -- 2
+    , "Renta"         -- 3
+    , "Salud"         -- 4
+    , "Educacion"     -- 5
+    , "Entretenimiento" -- 6
+    , "Servicios"     -- 7  (agua, luz, internet)
+    , "Ropa"          -- 8
+    , "Ahorro"        -- 9  (depositar a ahorros = gasto)
+    , "Inversion"     -- 10 (invertir dinero = gasto)
+    , "Otro"          -- 11
+    ]
+
+-- Devuelve la lista de categorias segun el tipo de registro
+categoriasPorTipo :: TipoRegistro -> [String]
+categoriasPorTipo Ingreso = categoriasIngreso
+categoriasPorTipo Gasto   = categoriasGasto
 
 -- SECCIÓN 3: TIPO DE FECHA
 --
@@ -150,8 +189,6 @@ estadoVacio = EstadoSistema
 mostrarTipo :: TipoRegistro -> String
 mostrarTipo Ingreso   = "Ingreso"
 mostrarTipo Gasto     = "Gasto"
-mostrarTipo Ahorro    = "Ahorro"
-mostrarTipo Inversion = "Inversion"
 -- Esto se llama "pattern matching": Haskell ve qué valor tiene el TipoRegistro y devuelve el texto correspondiente.
 -- Es como un switch/case pero más elegante y seguro.
 

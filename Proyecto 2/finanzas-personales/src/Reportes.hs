@@ -64,8 +64,8 @@ generarResumenMensual :: Int -> Int -> [RegistroFinanciero] -> String
 generarResumenMensual mes anio registrosMes =
     let ingresos    = totalPorTipo' Ingreso registrosMes
         gastos      = totalPorTipo' Gasto registrosMes
-        ahorros     = totalPorTipo' Ahorro registrosMes
-        inversiones = totalPorTipo' Inversion registrosMes
+        --ahorros     = totalPorTipo' Ahorro registrosMes
+        --inversiones = totalPorTipo' Inversion registrosMes
         balance     = ingresos - gastos
         nombreMes   = nombreDelMes mes
     in
@@ -74,8 +74,8 @@ generarResumenMensual mes anio registrosMes =
         "╠════════════════════════════════════════════════╣\n" ++
         "║ Ingresos:        " ++ pad20 (formatoMoneda ingresos) ++ "║\n" ++
         "║ Gastos:          " ++ pad20 (formatoMoneda gastos) ++ "║\n" ++
-        "║ Ahorros:         " ++ pad20 (formatoMoneda ahorros) ++ "║\n" ++
-        "║ Inversiones:     " ++ pad20 (formatoMoneda inversiones) ++ "║\n" ++
+        --"║ Ahorros:         " ++ pad20 (formatoMoneda ahorros) ++ "║\n" ++
+        --"║ Inversiones:     " ++ pad20 (formatoMoneda inversiones) ++ "║\n" ++
         "╠════════════════════════════════════════════════╣\n" ++
         "║ Balance neto:    " ++ pad20 (formatoMoneda balance) ++ "║\n" ++
         "╚════════════════════════════════════════════════╝"
