@@ -21,6 +21,7 @@ import Persistencia
 import Presupuesto
 import MenuAnalisis (menuAnalisis)
 import Reportes (menuReportes)
+import Reglas 
 
 
 -- ============================================================
@@ -62,9 +63,10 @@ menuPrincipal estado = do
     putStrLn "║              MENU PRINCIPAL              ║"
     putStrLn "╠══════════════════════════════════════════╣"
     putStrLn "║  1. Registros financieros                ║"
-    putStrLn "║  2. Presupuestos y reglas                ║"
+    putStrLn "║  2. Presupuestos                         ║"
     putStrLn "║  3. Analisis y simulacion                ║"
     putStrLn "║  4. Reportes                             ║"
+    putStrLn "║  5. Reglas                               ║"
     putStrLn "║  0. Guardar y salir                      ║"
     putStrLn "╚══════════════════════════════════════════╝"
     putStr "Elige una opcion: "
@@ -87,6 +89,12 @@ menuPrincipal estado = do
         "4" -> do
             nuevoEstado <- menuReportes estado
             menuPrincipal nuevoEstado
+
+        "5" -> do
+
+            nuevoEstado <- menuReglas estado
+            menuPrincipal nuevoEstado
+
         "0" ->
             return estado
         _   -> do

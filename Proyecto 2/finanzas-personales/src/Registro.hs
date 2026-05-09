@@ -29,6 +29,7 @@ import Data.Char  (toLower)
 
 import System.IO (hFlush, stdout)
 import Presupuesto hiding (totalMonto, filtrarPorTipo, filtrarPorCategoria,filtrarPorMes )
+import Reglas
 -- hFlush stdout fuerza que el texto aparezca en pantalla
 -- antes de esperar que el usuario escriba algo.
 
@@ -191,14 +192,54 @@ pedirRegistro estado t = do
             putStrLn ("  Fecha:     " ++ mostrarFecha f)
             putStrLn ("  Etiquetas: " ++ mostrarEtiquetas tags)
 
-            if t == Gasto
-                then do
+            
+            -- VERIFICAR ALERTAS Y REGLAS
+            
+
+            case t of
+
+                -- =====================================
+                -- GASTOS
+                -- =====================================
+
+                Gasto -> do
+
                     let mesRegistro  = mes f
                     let anioRegistro = anio f
-                    verificarAlertaPresupuesto cat mesRegistro anioRegistro nuevoEstado
+
+                    -- Verificar presupuesto
+                    verificarAlertaPresupuesto
+                        cat
+                        mesRegistro
+                        anioRegistro
+                        nuevoEstado
+
+                    -- Verificar reglas de gasto
+                    verificarReglasGasto nuevoEstado
+
                     return nuevoEstado
-            else
-                return  nuevoEstado 
+
+
+
+                -- =====================================
+                -- AHORROS
+                -- =====================================
+
+                Ahorro -> do
+
+                    -- Verificar reglas de ahorro
+                    verificarReglasAhorro nuevoEstado
+
+                    return nuevoEstado
+
+
+
+                -- =====================================
+                -- OTROS TIPOS
+                -- =====================================
+
+                _ ->
+                    return nuevoEstado
             
 
 
