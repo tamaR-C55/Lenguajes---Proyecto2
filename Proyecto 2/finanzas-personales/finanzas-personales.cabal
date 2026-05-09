@@ -19,7 +19,12 @@ executable finanzas-personales
         Types
         Registro
         Persistencia
+        Reportes
         MyLib
+        Presupuesto
+        Analisis
+        Simulacion
+        MenuAnalisis
 
     build-depends:
         base ^>=4.18.3.0,

@@ -101,23 +101,20 @@ data Presupuesto = Presupuesto
 
 -- CondicionRegla define el tipo de comparación que hace la regla. ReglaSistema junta la condición con el mensaje.
 
--- Las condiciones posibles para una regla
+-- Condiciones posibles de una regla
 data CondicionRegla
     = GastoSuperaMonto String Double
-    -- Gasto en cierta categoría supera cierto monto
-    -- Ejemplo: GastoSuperaMonto "Entretenimiento" 50000.0
     | AhorroMenorA Double
-    -- El ahorro total es menor a cierto valor
-    -- Ejemplo: AhorroMenorA 100000.0
     deriving (Show, Read, Eq)
 
--- Una regla completa: condición + mensaje para mostrar al usuario
+
+-- Regla completa del sistema
 data ReglaSistema = ReglaSistema
-    { condicion      :: CondicionRegla   -- Qué condición evaluar
-    , mensajeAlerta  :: String           -- Qué mostrarle al usuario si se cumple
+    { reglaId        :: Int
+    , condicion      :: CondicionRegla
+    , mensajeAlerta  :: String
     }
     deriving (Show, Read, Eq)
-
 
 -- SECCIÓN 7: EL ESTADO GENERAL DEL SISTEMA
 
@@ -154,7 +151,7 @@ mostrarTipo :: TipoRegistro -> String
 mostrarTipo Ingreso   = "Ingreso"
 mostrarTipo Gasto     = "Gasto"
 mostrarTipo Ahorro    = "Ahorro"
-mostrarTipo Inversion = "Inversión"
+mostrarTipo Inversion = "Inversion"
 -- Esto se llama "pattern matching": Haskell ve qué valor tiene el TipoRegistro y devuelve el texto correspondiente.
 -- Es como un switch/case pero más elegante y seguro.
 
@@ -219,3 +216,17 @@ fechaAnterior f1 f2
 -- Los 'guards' (|) son como condiciones if/else encadenadas.
 -- Haskell evalúa de arriba hacia abajo hasta encontrar True.
 -- 'otherwise' es el caso por defecto (como el else final).
+
+
+
+-- Tipos de datos adicionales para la sección de simulación
+
+type Monto = Double
+
+data Periodo = Periodo
+    {mesPeriodo :: Int,  -- Mes del año (1-12)
+     anioPeriodo :: Int  -- Año completo (ej: 2025)
+    } deriving (Show, Read, Eq)
+
+type EstadoFinanciero = EstadoSistema
+type Categoria = String
