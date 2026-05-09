@@ -8,13 +8,13 @@ import Types
 menuReglas :: EstadoSistema -> IO EstadoSistema
 menuReglas estado = do
 
-    putStrLn "\n========== MENÚ DE REGLAS =========="
+    putStrLn "\n========== MENU DE REGLAS =========="
     putStrLn "1. Crear regla"
     putStrLn "2. Modificar regla"
     putStrLn "3. Eliminar regla"
     putStrLn "4. Consultar reglas"
     putStrLn "0. Volver"
-    putStrLn "Seleccione una opción:"
+    putStrLn "Seleccione una opcion:"
 
     opcion <- getLine
 
@@ -42,7 +42,7 @@ menuReglas estado = do
             return estado
 
         _ -> do
-            putStrLn "Opción inválida"
+            putStrLn "Opcion invalida"
             menuReglas estado
 
 
@@ -57,8 +57,8 @@ crearReglaIO estado = do
     putStrLn "\n====== CREAR NUEVA REGLA ======"
 
     putStrLn "Seleccione el tipo de regla:"
-    putStrLn "1. Gastos por categoría"
-    putStrLn "2. Ahorro mínimo"
+    putStrLn "1. Gastos por categoria"
+    putStrLn "2. Ahorro minimo"
 
     opcion <- getLine
 
@@ -153,7 +153,7 @@ crearReglaIO estado = do
 
 
         _ -> do
-            putStrLn "Opción inválida"
+            putStrLn "Opcion invalida"
             return estado
 
 
@@ -189,8 +189,8 @@ mostrarRegla r =
 
             "ID: " ++ show (reglaId r) ++ "\n" ++
             "Tipo: Gasto\n" ++
-            "Categoría: " ++ categoria ++ "\n" ++
-            "Límite: " ++ show monto ++ "\n" ++
+            "Categoria: " ++ categoria ++ "\n" ++
+            "Limite: " ++ show monto ++ "\n" ++
             "Mensaje: " ++ mensajeAlerta r ++ "\n"
 
 
@@ -198,7 +198,7 @@ mostrarRegla r =
 
             "ID: " ++ show (reglaId r) ++ "\n" ++
             "Tipo: Ahorro\n" ++
-            "Monto mínimo: " ++ show monto ++ "\n" ++
+            "Monto minimo: " ++ show monto ++ "\n" ++
             "Mensaje: " ++ mensajeAlerta r ++ "\n"
 
 
@@ -222,7 +222,7 @@ siguienteIdRegla rs =
 leerCategoriaRegla :: IO String
 leerCategoriaRegla = do
 
-    putStrLn "Seleccione una categoría:"
+    putStrLn "Seleccione una categoria:"
     putStrLn "1. Comida"
     putStrLn "2. Transporte"
     putStrLn "3. Salud"
@@ -244,7 +244,7 @@ leerCategoriaRegla = do
         "5" -> return "Vivienda"
 
         _ -> do
-            putStrLn "Categoría inválida"
+            putStrLn "Categoria invalida"
             leerCategoriaRegla
 
 
@@ -252,7 +252,7 @@ leerCategoriaRegla = do
 leerMontoRegla :: IO Double
 leerMontoRegla = do
 
-    putStrLn "Ingrese el monto límite:"
+    putStrLn "Ingrese el monto limite:"
     montoStr <- getLine
 
     if esNumero montoStr
@@ -280,7 +280,7 @@ modificarReglaIO estado = do
 
     if not (esNumero idStr)
         then do
-            putStrLn "ID inválido"
+            putStrLn "ID invalido"
             return estado
 
         else do
@@ -432,7 +432,7 @@ eliminarReglaIO estado = do
     -- Validar ID
     if not (esNumero idStr)
         then do
-            putStrLn "ID inválido"
+            putStrLn "ID invalido"
             return estado
 
         else do
@@ -453,7 +453,7 @@ eliminarReglaIO estado = do
                     putStrLn (mostrarRegla reglaEncontrada)
 
                     -- Confirmación
-                    putStrLn "¿Está seguro de eliminar esta regla?"
+                    putStrLn "¿Esta seguro de eliminar esta regla?"
                     putStrLn "1. Sí"
                     putStrLn "2. No"
 
@@ -484,7 +484,7 @@ eliminarReglaIO estado = do
                         -- ==============================
 
                         "2" -> do
-                            putStrLn "Eliminación cancelada"
+                            putStrLn "Eliminacion cancelada"
                             return estado
 
 
@@ -493,7 +493,7 @@ eliminarReglaIO estado = do
                         -- ==============================
 
                         _ -> do
-                            putStrLn "Opción inválida"
+                            putStrLn "Opcion invalida"
                             return estado
 
 
@@ -544,9 +544,9 @@ verificarListaReglas (r:rs) estado = do
 
                     putStrLn "\n ALERTA DE REGLA "
 
-                    putStrLn ("Categoría: " ++ categoria)
+                    putStrLn ("Categoria: " ++ categoria)
 
-                    putStrLn ("Límite definido: " ++ show limite)
+                    putStrLn ("Limite definido: " ++ show limite)
 
                     putStrLn ("Gasto actual: " ++ show gastoTotal)
 
@@ -635,11 +635,11 @@ verificarListaReglasAhorro (r:rs) estado = do
             if ahorroTotal < limite
                 then do
 
-                    putStrLn "\n⚠ ADVERTENCIA DE AHORRO ⚠"
+                    putStrLn "\nADVERTENCIA DE AHORRO"
 
                     putStrLn ("Regla ID: " ++ show (reglaId r))
 
-                    putStrLn ("Ahorro mínimo esperado: " ++ show limite)
+                    putStrLn ("Ahorro minimo esperado: " ++ show limite)
 
                     putStrLn ("Ahorro actual: " ++ show ahorroTotal)
 
@@ -673,7 +673,8 @@ obtenerTotalAhorro estado =
 
         -- Solo registros de ahorro
         ahorros =
-            filter (\r -> tipo r == Ahorro) listaRegistros
+            --filter (\r -> tipo r == Ahorro) listaRegistros
+            filter (\r -> categoria r == "Ahorro") listaRegistros
 
     in
 
