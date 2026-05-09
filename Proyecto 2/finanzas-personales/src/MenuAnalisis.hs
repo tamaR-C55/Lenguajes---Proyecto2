@@ -126,7 +126,7 @@ menuAnalisis estado = do
                 else mapM_ (\(rOrig, rNuevo) ->
                         putStrLn $ "  ID " ++ show (registroId rOrig) ++
                                    " : " ++ show (monto rOrig) ++
-                                   " → " ++ show (monto rNuevo))
+                                   " => " ++ show (monto rNuevo))
                         cambios
             putStrLn "\n(Nota: esta simulacion no se guarda, solo se muestra el efecto)"
             esperarTecla
