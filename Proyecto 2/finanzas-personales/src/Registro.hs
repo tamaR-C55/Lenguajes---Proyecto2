@@ -148,6 +148,38 @@ pedirRegistro estado t = do
             putStrLn ("  Monto:     " ++ show m)
             putStrLn ("  Fecha:     " ++ mostrarFecha f)
             putStrLn ("  Etiquetas: " ++ mostrarEtiquetas tags)
+            
+            -- =====================================================
+            -- VERIFICAR PRESUPUESTOS Y REGLAS
+            -- =====================================================
+
+            if t == Gasto
+                then do
+
+                    let mesRegistro  = mes f
+                        anioRegistro = anio f
+
+                    -- Verificar presupuestos
+                    verificarAlertaPresupuesto
+                        cat
+                        mesRegistro
+                        anioRegistro
+                        nuevoEstado
+
+                    -- Verificar reglas de gasto
+                    verificarReglasGasto cat nuevoEstado
+
+                    -- Verificar reglas de ahorro
+                    -- SOLO si la categoria es "Ahorro"
+                    if cat == "Ahorro"
+                        then
+                            verificarReglasAhorro nuevoEstado
+                        else
+                            return ()
+
+                else
+                    return ()
+
             return nuevoEstado
 
 

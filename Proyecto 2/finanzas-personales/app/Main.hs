@@ -90,10 +90,10 @@ menuPrincipal estado = do
             nuevoEstado <- menuReportes estado
             menuPrincipal nuevoEstado
 
-        --"5" -> do
+        "5" -> do
 
-            --nuevoEstado <- menuReglas estado
-            --menuPrincipal nuevoEstado
+            nuevoEstado <- menuReglas estado
+            menuPrincipal nuevoEstado
 
         "0" ->
             return estado
