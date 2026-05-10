@@ -20,6 +20,8 @@ menuPresupuestos estado = do
     putStrLn "2. Obtener informacion de un presupuesto"
     putStrLn "3. Obtener todos los presupuestos"
     putStrLn "4. Comparar Registros financieros VS Presupuesto  "
+    putStrLn "5. Modificar presupuesto  "
+    putStrLn "6. Eliminar presupuesto"
     putStrLn "0. Volver"
     putStrLn "Seleccione una opcion:"
     
@@ -38,6 +40,15 @@ menuPresupuestos estado = do
         "4" -> do
             compararPresupuesto estado
             menuPresupuestos estado
+
+
+        "5" -> do
+            estadoActualizado <- modificarPresupuesto estado -- guarda el estado ya actualizado que devuelve
+            menuPresupuestos estadoActualizado -- vuelve a mostrar el menu
+
+        "6" -> do
+            estadoActualizado <- eliminarPresupuesto estado -- guarda el estado ya actualizado que devuelve
+            menuPresupuestos estadoActualizado -- vuelve a mostrar el menu
         
         "0" -> return estado -- devuelve el estado actual 
         
@@ -57,7 +68,9 @@ definirPresupuestoIO estado = do
     mes       <- leerMes
     anio      <- leerAnio
 
-    let nuevo = crearPresupuesto categoria monto mes anio --crea el nuevo presupuesto 
+    let nuevoId = siguienteIdPresupuesto (presupuestos estado)
+
+    let nuevo = crearPresupuesto nuevoId categoria monto mes anio--crea el nuevo presupuesto 
 
     if existePresupuesto nuevo (presupuestos estado) --verfica si ya existe un presupuesto con los mismo datos envia el nuevo y la lista de presupuestos
         then do
@@ -176,12 +189,17 @@ verificarAlertaPresupuesto categoria mes anio estado = do
 -- FUNCIONES auxiliares
 
 -- Crear presupuesto
-crearPresupuesto :: String -> Double -> Int -> Int -> Presupuesto  -- construye el dato
-crearPresupuesto cat monto mes anio =
-    Presupuesto cat monto mes anio -- crea el nuevo presupuesto
+crearPresupuesto :: Int -> String -> Double -> Int -> Int -> Presupuesto -- construye el dato
+crearPresupuesto id cat monto mes anio =
+    Presupuesto id cat monto mes anio-- crea el nuevo presupuesto
 
 
+siguienteIdPresupuesto :: [Presupuesto] -> Int
 
+siguienteIdPresupuesto [] = 1
+
+siguienteIdPresupuesto ps =
+    1 + maximum (map presupuestoId ps)
 -- validar duplicados
 
 existePresupuesto :: Presupuesto -> [Presupuesto] -> Bool
@@ -234,14 +252,25 @@ reemplazarPresupuesto nuevo estado =
 -- muestra la informacion de un presupuesto 
 mostrarPresupuesto :: Presupuesto -> String
 mostrarPresupuesto p =
-
+    "ID: " ++ show (presupuestoId p) ++ "\n" ++
     "Categoria: " ++ presupuestoCategoria p ++ "\n" ++
     "Monto: " ++ show (montoMaximo p) ++ "\n" ++
     "Mes: " ++ show (periodoMes p) ++ "\n" ++
     "Año: " ++ show (periodoAnio p)
 
 
+buscarPresupuestoPorId :: Int -> EstadoSistema -> Maybe Presupuesto
 
+buscarPresupuestoPorId idBuscado estado =
+
+    case filter
+            (\p -> presupuestoId p == idBuscado)
+            (presupuestos estado)
+    of
+
+        [p] -> Just p
+
+        _   -> Nothing
 
 mostrarTodosPresupuestos :: EstadoSistema -> IO ()
 mostrarTodosPresupuestos estado = do
@@ -255,7 +284,242 @@ mostrarTodosPresupuestos estado = do
             -- unlines convierte una lista de strings en uno slo con saltos
 
 
+-- =========================================================
+-- MODIFICAR PRESUPUESTO
+-- =========================================================
 
+modificarPresupuesto :: EstadoSistema -> IO EstadoSistema
+modificarPresupuesto estado = do
+
+    let lista = presupuestos estado
+
+    -- =============================================
+    -- VALIDAR SI HAY PRESUPUESTOS
+    -- =============================================
+
+    if null lista
+        then do
+
+            putStrLn "\nNo hay presupuestos registrados."
+
+            return estado
+
+        else do
+
+            -- =====================================
+            -- MOSTRAR PRESUPUESTOS
+            -- =====================================
+
+            putStrLn "\n====== PRESUPUESTOS REGISTRADOS ======\n"
+
+            putStrLn (unlines (map mostrarPresupuesto lista))
+
+            -- =====================================
+            -- PEDIR ID
+            -- =====================================
+
+            putStrLn "\nIngrese el ID del presupuesto a modificar:"
+
+            idStr <- getLine
+
+            if not (esNumero idStr)
+                then do
+
+                    putStrLn "ID invalido"
+
+                    return estado
+
+                else do
+
+                    let idBuscado = read idStr :: Int
+
+                    -- =================================
+                    -- BUSCAR PRESUPUESTO
+                    -- =================================
+
+                    case buscarPresupuestoPorId idBuscado estado of
+
+                        Nothing -> do
+
+                            putStrLn "No existe un presupuesto con ese ID."
+
+                            return estado
+
+                        Just presupuestoActual -> do
+
+                            -- =========================
+                            -- MOSTRAR PRESUPUESTO
+                            -- =========================
+
+                            putStrLn "\nPresupuesto encontrado:\n"
+
+                            putStrLn
+                                (mostrarPresupuesto presupuestoActual)
+
+                            -- =========================
+                            -- PEDIR NUEVO MONTO
+                            -- =========================
+
+                            
+
+                            nuevoMonto <- leerMonto
+
+                            -- =========================
+                            -- CREAR PRESUPUESTO NUEVO
+                            -- =========================
+
+                            let presupuestoNuevo =
+                                    Presupuesto
+                                        { presupuestoId =
+                                            presupuestoId presupuestoActual
+
+                                        , presupuestoCategoria =
+                                            presupuestoCategoria presupuestoActual
+
+                                        , montoMaximo =
+                                            nuevoMonto
+
+                                        , periodoMes =
+                                            periodoMes presupuestoActual
+
+                                        , periodoAnio =
+                                            periodoAnio presupuestoActual
+                                        }
+
+                            -- =========================
+                            -- REEMPLAZAR EN LISTA
+                            -- =========================
+
+                            let nuevaLista =
+                                    presupuestoNuevo :
+
+                                    filter
+                                        (\p ->
+                                            presupuestoId p /= idBuscado
+                                        )
+                                        lista
+
+                            let nuevoEstado =
+                                    estado
+                                        { presupuestos = nuevaLista }
+
+                            putStrLn
+                                "\nPresupuesto modificado correctamente."
+
+                            return nuevoEstado
+
+
+-- =========================================================
+-- ELIMINAR PRESUPUESTO
+-- =========================================================
+
+eliminarPresupuesto :: EstadoSistema -> IO EstadoSistema
+eliminarPresupuesto estado = do
+
+    let lista = presupuestos estado
+
+    -- =============================================
+    -- VALIDAR SI HAY PRESUPUESTOS
+    -- =============================================
+
+    if null lista
+        then do
+
+            putStrLn "\nNo hay presupuestos registrados."
+
+            return estado
+
+        else do
+
+            -- =====================================
+            -- MOSTRAR PRESUPUESTOS
+            -- =====================================
+
+            putStrLn "\n====== PRESUPUESTOS REGISTRADOS ======\n"
+
+            putStrLn (unlines (map mostrarPresupuesto lista))
+
+            -- =====================================
+            -- PEDIR ID
+            -- =====================================
+
+            putStrLn "\nIngrese el ID del presupuesto a eliminar:"
+
+            idStr <- getLine
+
+            if not (esNumero idStr)
+                then do
+
+                    putStrLn "ID invalido"
+
+                    return estado
+
+                else do
+
+                    let idBuscado = read idStr :: Int
+
+                    -- =================================
+                    -- BUSCAR PRESUPUESTO
+                    -- =================================
+
+                    case buscarPresupuestoPorId idBuscado estado of
+
+                        Nothing -> do
+
+                            putStrLn
+                                "No existe un presupuesto con ese ID."
+
+                            return estado
+
+                        Just presupuestoEncontrado -> do
+
+                            -- =========================
+                            -- MOSTRAR PRESUPUESTO
+                            -- =========================
+
+                            putStrLn "\nPresupuesto encontrado:\n"
+
+                            putStrLn
+                                (mostrarPresupuesto presupuestoEncontrado)
+
+                            -- =========================
+                            -- CONFIRMAR ELIMINACIÓN
+                            -- =========================
+
+                            putStrLn
+                                "\n¿Seguro que desea eliminar este presupuesto? (s/n)"
+
+                            opcion <- getLine
+
+                            if opcion == "s"
+                                then do
+
+                                    -- =================
+                                    -- ELIMINAR
+                                    -- =================
+
+                                    let nuevaLista =
+                                            filter
+                                                (\p ->
+                                                    presupuestoId p /= idBuscado
+                                                )
+                                                lista
+
+                                    let nuevoEstado =
+                                            estado
+                                                { presupuestos = nuevaLista }
+
+                                    putStrLn
+                                        "\nPresupuesto eliminado correctamente."
+
+                                    return nuevoEstado
+
+                                else do
+
+                                    putStrLn
+                                        "\nOperacion cancelada."
+
+                                    return estado
 -- =========================================================
 -- VALIDACIÓN
 -- =========================================================
@@ -269,13 +533,40 @@ esNumero s = case reads s :: [(Double, String)] of -- intenta convertir a numero
 
 leerCategoria :: IO String
 leerCategoria = do
-    putStrLn "Ingrese la categoria:"
-    categoria <- getLine
-    if null categoria --verifica si esta vacia 
+
+    let categorias = categoriasPorTipo Gasto
+
+    putStrLn "\nSeleccione una categoria:"
+
+    mostrarCategorias 1 categorias
+
+    opcionStr <- getLine
+
+    if not (esNumero opcionStr)
         then do
-            putStrLn " La categoria no puede estar vacia"
-            leerCategoria -- si hay un error se vuelve a llamar a si misma 
-        else return categoria
+            putStrLn "Opcion invalida"
+            leerCategoria
+
+        else do
+
+            let opcion = read opcionStr :: Int
+
+            if opcion < 1 || opcion > length categorias
+                then do
+                    putStrLn "Opcion fuera de rango"
+                    leerCategoria
+
+                else
+                    return (categorias !! (opcion - 1))
+mostrarCategorias :: Int -> [String] -> IO ()
+
+mostrarCategorias _ [] = return ()
+
+mostrarCategorias n (c:cs) = do
+
+    putStrLn (show n ++ ". " ++ c)
+
+    mostrarCategorias (n + 1) cs
 
 
 leerMonto :: IO Double

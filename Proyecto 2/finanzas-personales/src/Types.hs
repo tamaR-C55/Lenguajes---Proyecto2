@@ -127,7 +127,8 @@ data RegistroFinanciero = RegistroFinanciero
 -- ============================================================
 
 data Presupuesto = Presupuesto
-    { presupuestoCategoria :: String   -- A qué categoría aplica
+    {presupuestoId        :: Int
+    ,presupuestoCategoria :: String   -- A qué categoría aplica
     , montoMaximo          :: Double   -- Cuánto se puede gastar como máximo
     , periodoMes           :: Int      -- Mes al que aplica (1–12)
     , periodoAnio          :: Int      -- Año al que aplica
