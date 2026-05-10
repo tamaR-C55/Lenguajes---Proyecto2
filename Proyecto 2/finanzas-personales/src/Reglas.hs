@@ -72,6 +72,11 @@ crearReglaIO estado = do
 
             categoria <- leerCategoriaRegla
 
+            let yaExiste =
+                    existeReglaCategoria
+                        categoria
+                        (reglas estado)
+
             monto <- leerMontoRegla
 
             putStrLn "Ingrese el mensaje de alerta:"
@@ -79,7 +84,8 @@ crearReglaIO estado = do
 
 
             -- Obtener nuevo ID
-            let nuevoId = siguienteIdRegla (reglas estado)
+            let nuevoId =
+                    siguienteIdRegla (reglas estado)
 
 
             -- Crear condición
@@ -96,17 +102,66 @@ crearReglaIO estado = do
                         }
 
 
-            -- Agregar al estado
+            -- Lista actual
             let reglasActuales = reglas estado
 
-            let estadoNuevo =
-                    estado
-                        { reglas = nuevaRegla : reglasActuales }
+
+            -- =====================================
+            -- SI YA EXISTE UNA REGLA
+            -- =====================================
+
+            if yaExiste
+                then do
+
+                    putStrLn
+                        "Ya existe una regla para esta categoria."
+
+                    putStrLn
+                        "¿Desea reemplazarla? (s/n)"
+
+                    opcionReemplazo <- getLine
+
+                    if opcionReemplazo == "s"
+                        then do
+
+                            let nuevasReglas =
+                                    reemplazarReglaCategoria
+                                        nuevaRegla
+                                        reglasActuales
+
+                            let estadoNuevo =
+                                    estado
+                                        { reglas = nuevasReglas }
+
+                            putStrLn
+                                "Regla reemplazada correctamente."
+
+                            return estadoNuevo
+
+                        else do
+
+                            putStrLn
+                                "No se realizaron cambios."
+
+                            return estado
 
 
-            putStrLn "Regla creada correctamente"
+                -- =================================
+                -- SI NO EXISTE
+                -- =================================
 
-            return estadoNuevo
+                else do
+
+                    let estadoNuevo =
+                            estado
+                                { reglas =
+                                    nuevaRegla : reglasActuales
+                                }
+
+                    putStrLn
+                        "Regla creada correctamente"
+
+                    return estadoNuevo
 
 
                 -- =========================================
@@ -275,6 +330,62 @@ siguienteIdRegla [] = 1
 siguienteIdRegla rs =
     maximum (map reglaId rs) + 1
 
+-- =========================================================
+-- VERIFICAR SI YA EXISTE UNA REGLA
+-- PARA UNA CATEGORIA
+-- =========================================================
+
+existeReglaCategoria :: String -> [ReglaSistema] -> Bool
+
+existeReglaCategoria categoriaBuscada listaReglas =
+
+    any
+        (\r ->
+
+            case condicion r of
+
+                GastoSuperaMonto categoria _ ->
+
+                    categoria == categoriaBuscada
+
+                _ ->
+
+                    False
+        )
+        listaReglas
+
+
+-- =========================================================
+-- REEMPLAZAR REGLA DE CATEGORIA
+-- =========================================================
+
+reemplazarReglaCategoria
+    :: ReglaSistema
+    -> [ReglaSistema]
+    -> [ReglaSistema]
+
+reemplazarReglaCategoria nuevaRegla listaReglas =
+
+    nuevaRegla :
+
+    filter
+        (\r ->
+
+            case condicion r of
+
+                GastoSuperaMonto categoria _ ->
+
+                    case condicion nuevaRegla of
+
+                        GastoSuperaMonto nuevaCategoria _ ->
+
+                            categoria /= nuevaCategoria
+
+                        _ -> True
+
+                _ -> True
+        )
+        listaReglas
 
 
 -- =========================================================

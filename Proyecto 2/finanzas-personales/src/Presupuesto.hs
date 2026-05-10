@@ -173,7 +173,7 @@ verificarAlertaPresupuesto categoria mes anio estado = do
             let gasto = obtenerGasto categoria mes anio estado -- obtiene el total de gasto 
             if gasto > monto -- excedio el presupuesto 
                 then do
-                    putStrLn "ALERTA "
+                    putStrLn "\nALERTA "
                     putStrLn "Ha excedido su presupuesto"
                     putStrLn ("Categoria de presupuesto: " ++ show categoria)
                     putStrLn ("Su presupuesto es: " ++ show monto)
