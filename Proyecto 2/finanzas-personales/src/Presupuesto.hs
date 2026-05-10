@@ -4,14 +4,7 @@ import Data.Char (toLower)
 
 import Types 
 
-
-
-
-
-
--- =========================================================
 -- MENÚ PRINCIPAL DE PRESUPUESTOS
--- =========================================================
 
 menuPresupuestos :: EstadoSistema -> IO EstadoSistema  -- recibe un estado y lo devuelve actualizado
 menuPresupuestos estado = do
@@ -284,18 +277,14 @@ mostrarTodosPresupuestos estado = do
             -- unlines convierte una lista de strings en uno slo con saltos
 
 
--- =========================================================
--- MODIFICAR PRESUPUESTO
--- =========================================================
 
+-- MODIFICAR PRESUPUESTO
 modificarPresupuesto :: EstadoSistema -> IO EstadoSistema
 modificarPresupuesto estado = do
 
     let lista = presupuestos estado
 
-    -- =============================================
     -- VALIDAR SI HAY PRESUPUESTOS
-    -- =============================================
 
     if null lista
         then do
@@ -306,17 +295,13 @@ modificarPresupuesto estado = do
 
         else do
 
-            -- =====================================
-            -- MOSTRAR PRESUPUESTOS
-            -- =====================================
 
+            -- MOSTRAR PRESUPUESTOS
             putStrLn "\n====== PRESUPUESTOS REGISTRADOS ======\n"
 
             putStrLn (unlines (map mostrarPresupuesto lista))
 
-            -- =====================================
             -- PEDIR ID
-            -- =====================================
 
             putStrLn "\nIngrese el ID del presupuesto a modificar:"
 
@@ -333,9 +318,7 @@ modificarPresupuesto estado = do
 
                     let idBuscado = read idStr :: Int
 
-                    -- =================================
                     -- BUSCAR PRESUPUESTO
-                    -- =================================
 
                     case buscarPresupuestoPorId idBuscado estado of
 
@@ -347,26 +330,19 @@ modificarPresupuesto estado = do
 
                         Just presupuestoActual -> do
 
-                            -- =========================
                             -- MOSTRAR PRESUPUESTO
-                            -- =========================
 
                             putStrLn "\nPresupuesto encontrado:\n"
 
                             putStrLn
                                 (mostrarPresupuesto presupuestoActual)
 
-                            -- =========================
                             -- PEDIR NUEVO MONTO
-                            -- =========================
 
                             
 
                             nuevoMonto <- leerMonto
-
-                            -- =========================
                             -- CREAR PRESUPUESTO NUEVO
-                            -- =========================
 
                             let presupuestoNuevo =
                                     Presupuesto
@@ -386,9 +362,7 @@ modificarPresupuesto estado = do
                                             periodoAnio presupuestoActual
                                         }
 
-                            -- =========================
                             -- REEMPLAZAR EN LISTA
-                            -- =========================
 
                             let nuevaLista =
                                     presupuestoNuevo :
@@ -397,7 +371,7 @@ modificarPresupuesto estado = do
                                         (\p ->
                                             presupuestoId p /= idBuscado
                                         )
-                                        lista
+                                        lista -- deja la que no coincide y agrega el nuevo 
 
                             let nuevoEstado =
                                     estado
@@ -409,18 +383,14 @@ modificarPresupuesto estado = do
                             return nuevoEstado
 
 
--- =========================================================
--- ELIMINAR PRESUPUESTO
--- =========================================================
 
+-- ELIMINAR PRESUPUESTO
 eliminarPresupuesto :: EstadoSistema -> IO EstadoSistema
 eliminarPresupuesto estado = do
 
     let lista = presupuestos estado
 
-    -- =============================================
     -- VALIDAR SI HAY PRESUPUESTOS
-    -- =============================================
 
     if null lista
         then do
@@ -431,23 +401,19 @@ eliminarPresupuesto estado = do
 
         else do
 
-            -- =====================================
             -- MOSTRAR PRESUPUESTOS
-            -- =====================================
 
             putStrLn "\n====== PRESUPUESTOS REGISTRADOS ======\n"
 
             putStrLn (unlines (map mostrarPresupuesto lista))
 
-            -- =====================================
             -- PEDIR ID
-            -- =====================================
 
             putStrLn "\nIngrese el ID del presupuesto a eliminar:"
 
             idStr <- getLine
 
-            if not (esNumero idStr)
+            if not (esNumero idStr) -- valida que sea un numero 
                 then do
 
                     putStrLn "ID invalido"
@@ -457,10 +423,7 @@ eliminarPresupuesto estado = do
                 else do
 
                     let idBuscado = read idStr :: Int
-
-                    -- =================================
                     -- BUSCAR PRESUPUESTO
-                    -- =================================
 
                     case buscarPresupuestoPorId idBuscado estado of
 
@@ -471,20 +434,17 @@ eliminarPresupuesto estado = do
 
                             return estado
 
-                        Just presupuestoEncontrado -> do
+                        Just presupuestoEncontrado -> do -- retorna el presupuesto 
 
-                            -- =========================
                             -- MOSTRAR PRESUPUESTO
-                            -- =========================
 
                             putStrLn "\nPresupuesto encontrado:\n"
 
                             putStrLn
                                 (mostrarPresupuesto presupuestoEncontrado)
 
-                            -- =========================
-                            -- CONFIRMAR ELIMINACIÓN
-                            -- =========================
+
+                            -- CONFIRMAR ELIMINACIÓ
 
                             putStrLn
                                 "\n¿Seguro que desea eliminar este presupuesto? (s/n)"
@@ -494,20 +454,18 @@ eliminarPresupuesto estado = do
                             if opcion == "s"
                                 then do
 
-                                    -- =================
                                     -- ELIMINAR
-                                    -- =================
 
                                     let nuevaLista =
                                             filter
                                                 (\p ->
                                                     presupuestoId p /= idBuscado
                                                 )
-                                                lista
+                                                lista -- solo deja los id que no son el que se quiere eliminar 
 
                                     let nuevoEstado =
                                             estado
-                                                { presupuestos = nuevaLista }
+                                                { presupuestos = nuevaLista } -- actuliza el estado 
 
                                     putStrLn
                                         "\nPresupuesto eliminado correctamente."
@@ -520,9 +478,7 @@ eliminarPresupuesto estado = do
                                         "\nOperacion cancelada."
 
                                     return estado
--- =========================================================
 -- VALIDACIÓN
--- =========================================================
 
 -- Verifica si un string es número
 esNumero :: String -> Bool
