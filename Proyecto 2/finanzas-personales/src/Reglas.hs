@@ -3,8 +3,6 @@ module Reglas where
 import Types
 
 -- MENÚ DE REGLAS
--- =========================================================
-
 menuReglas :: EstadoSistema -> IO EstadoSistema
 menuReglas estado = do
 
@@ -47,10 +45,8 @@ menuReglas estado = do
 
 
 
--- =========================================================
--- CREAR REGLA
--- =========================================================
 
+-- CREAR REGLA
 crearReglaIO :: EstadoSistema -> IO EstadoSistema
 crearReglaIO estado = do
 
@@ -64,26 +60,31 @@ crearReglaIO estado = do
 
     case opcion of
 
-        -- =========================================
+        
         -- REGLA DE GASTO
-        -- =========================================
 
         "1" -> do
 
-            categoria <- leerCategoriaRegla
+            categoria <- leerCategoriaRegla -- lee la categoria que escogio
 
-            monto <- leerMontoRegla
+            let yaExiste = -- verifica si ya existe una regla con esa categoria
+                    existeReglaCategoria
+                        categoria
+                        (reglas estado)
+
+            monto <- leerMontoRegla -- lee el monto 
 
             putStrLn "Ingrese el mensaje de alerta:"
-            mensaje <- getLine
+            mensaje <- getLine -- lee el mensaje que se quiere guardar 
 
 
             -- Obtener nuevo ID
-            let nuevoId = siguienteIdRegla (reglas estado)
+            let nuevoId =
+                    siguienteIdRegla (reglas estado)-- genera un nuevo id
 
 
             -- Crear condición
-            let condicionNueva =
+            let condicionNueva = 
                     GastoSuperaMonto categoria monto
 
 
@@ -96,96 +97,194 @@ crearReglaIO estado = do
                         }
 
 
-            -- Agregar al estado
+            -- Lista actual
             let reglasActuales = reglas estado
 
-            let estadoNuevo =
-                    estado
-                        { reglas = nuevaRegla : reglasActuales }
+
+            
+            -- SI YA EXISTE UNA REGLA
+
+            if yaExiste
+                then do
+
+                    putStrLn
+                        "Ya existe una regla para esta categoria."
+
+                    putStrLn
+                        "¿Desea reemplazarla? (s/n)"
+
+                    opcionReemplazo <- getLine
+
+                    if opcionReemplazo == "s"
+                        then do
+
+                            let nuevasReglas = -- remplaza la antigua regla 
+                                    reemplazarReglaCategoria
+                                        nuevaRegla
+                                        reglasActuales
+
+                            let estadoNuevo = --actualiza el estado
+                                    estado
+                                        { reglas = nuevasReglas }
+
+                            putStrLn
+                                "Regla reemplazada correctamente."
+
+                            return estadoNuevo
+
+                        else do
+
+                            putStrLn
+                                "No se realizaron cambios."
+
+                            return estado
 
 
-            putStrLn "Regla creada correctamente"
+                -- SI NO EXISTE
 
-            return estadoNuevo
+                else do
 
+                    let estadoNuevo = -- agrega la nueva regla 
+                            estado
+                                { reglas =
+                                    nuevaRegla : reglasActuales
+                                }
 
-        -- =========================================
+                    putStrLn
+                        "Regla creada correctamente"
+
+                    return estadoNuevo
+
         -- REGLA DE AHORRO
-        -- =========================================
 
         "2" -> do
 
-            monto <- leerMontoRegla
+            -- Buscar si ya existe una regla de ahorro
+            let reglaExistente =
+                    filter
+                        (\r ->
+                            case condicion r of
+                                AhorroMenorA _ -> True
+                                _              -> False
+                        )
+                        (reglas estado)
 
-            putStrLn "Ingrese el mensaje de advertencia:"
-            mensaje <- getLine
+           
+            -- SI YA EXISTE
 
+            if not (null reglaExistente)
+                then do
 
-            -- Obtener nuevo ID
-            let nuevoId = siguienteIdRegla (reglas estado)
+                    putStrLn "\nYa existe una regla de ahorro."
 
+                    putStrLn "Desea reemplazarla? (s/n)"
 
-            -- Crear condición
-            let condicionNueva =
-                    AhorroMenorA monto
+                    respuesta <- getLine
 
+                    if respuesta == "s"
+                        then do
 
-            -- Crear regla
-            let nuevaRegla =
-                    ReglaSistema
-                        { reglaId = nuevoId
-                        , condicion = condicionNueva
-                        , mensajeAlerta = mensaje
-                        }
+                            monto <- leerMontoRegla
 
+                            putStrLn "Ingrese el mensaje de advertencia:"
+                            mensaje <- getLine
 
-            -- Actualizar estado
-            let reglasActuales = reglas estado
+                            let nuevoId = -- genera un nuevo id 
+                                    siguienteIdRegla (reglas estado)
 
-            let estadoNuevo =
-                    estado
-                        { reglas = nuevaRegla : reglasActuales }
+                            let condicionNueva = -- crea la nueva condicion 
+                                    AhorroMenorA monto
 
+                            let nuevaRegla = 
+                                    ReglaSistema
+                                        { reglaId = nuevoId
+                                        , condicion = condicionNueva
+                                        , mensajeAlerta = mensaje
+                                        }
 
-            putStrLn "Regla creada correctamente"
+                            -- Eliminar reglas de ahorro anteriores
+                            let reglasFiltradas =
+                                    filter
+                                        (\r ->
+                                            case condicion r of
+                                                AhorroMenorA _ -> False
+                                                _              -> True
+                                        )
+                                        (reglas estado)
 
-            return estadoNuevo
+                            let estadoNuevo = -- actualiza el estado con las nuevas reglas 
+                                    estado
+                                        { reglas = nuevaRegla : reglasFiltradas }
 
+                            putStrLn "Regla reemplazada correctamente"
 
+                            return estadoNuevo
+
+                        else do
+
+                            putStrLn "No se realizaron cambios"
+
+                            return estado
+
+             
+                -- SI NO EXISTE
+
+                else do
+
+                    monto <- leerMontoRegla
+
+                    putStrLn "Ingrese el mensaje de advertencia:"
+                    mensaje <- getLine
+
+                    let nuevoId = -- crea id 
+                            siguienteIdRegla (reglas estado)
+
+                    let condicionNueva =
+                            AhorroMenorA monto
+
+                    let nuevaRegla = -- agrega la nueva regla 
+                            ReglaSistema
+                                { reglaId = nuevoId
+                                , condicion = condicionNueva
+                                , mensajeAlerta = mensaje
+                                }
+
+                    let estadoNuevo =
+                            estado
+                                { reglas = nuevaRegla : reglas estado }
+
+                    putStrLn "Regla creada correctamente"
+
+                    return estadoNuevo
         _ -> do
             putStrLn "Opcion invalida"
             return estado
 
 
 
--- =========================================================
--- MOSTRAR TODAS LAS REGLAS
--- =========================================================
 
+-- MOSTRAR TODAS LAS REGLAS
 mostrarReglas :: EstadoSistema -> IO ()
 mostrarReglas estado = do
 
-    let lista = reglas estado
+    let lista = reglas estado -- obtiene las reglas 
 
-    if null lista
+    if null lista -- ve si esta vacia 
         then putStrLn "No hay reglas registradas"
         else do
             putStrLn "\n====== LISTA DE REGLAS ======"
 
-            mapM_ (putStrLn . mostrarRegla) lista
+            mapM_ (putStrLn . mostrarRegla) lista -- recorre la lista y llama a la funcion para mostrar cada regla 
 
 
 
--- =========================================================
 -- MOSTRAR UNA REGLA
--- =========================================================
-
 mostrarRegla :: ReglaSistema -> String
 mostrarRegla r =
 
-    case condicion r of
+    case condicion r of -- obtiene la condicion
 
-        GastoSuperaMonto categoria monto ->
+        GastoSuperaMonto categoria monto -> -- si es de gasto extrae la categoria y monto 
 
             "ID: " ++ show (reglaId r) ++ "\n" ++
             "Tipo: Gasto\n" ++
@@ -203,56 +302,113 @@ mostrarRegla r =
 
 
 
--- =========================================================
--- GENERAR SIGUIENTE ID
--- =========================================================
 
+-- GENERAR SIGUIENTE ID
 siguienteIdRegla :: [ReglaSistema] -> Int
-siguienteIdRegla [] = 1
+siguienteIdRegla [] = 1 -- inicia en 1 
 
 siguienteIdRegla rs =
-    maximum (map reglaId rs) + 1
+    maximum (map reglaId rs) + 1 -- obtiene los id saca el mayor id y le suma 1 que sera el nuevo 
 
 
 
--- =========================================================
+-- VERIFICAR SI YA EXISTE UNA REGLA
+-- PARA UNA CATEGORIA
+existeReglaCategoria :: String -> [ReglaSistema] -> Bool -- recibe la categoria y las reglas 
+existeReglaCategoria categoriaBuscada listaReglas =
+
+    any -- revisa si existe al menos 1 
+        (\r -> -- revisa cada r 
+
+            case condicion r of -- obtiene la condicion de la regla
+
+                GastoSuperaMonto categoria _ -> -- si es de gasto extrae la categoria 
+
+                    categoria == categoriaBuscada -- cpmpara las categorias 
+
+                _ ->
+
+                    False -- si no encontro ninguna 
+        )
+        listaReglas
+
+
+
+-- REEMPLAZAR REGLA DE CATEGORIA
+reemplazarReglaCategoria :: ReglaSistema -> [ReglaSistema] -> [ReglaSistema]
+reemplazarReglaCategoria nuevaRegla listaReglas =
+
+    nuevaRegla : -- agrega la nueva regla al inicio 
+
+    filter -- si da falsa filter elimina la regla pasada 
+        (\r -> --ejectua para cada r 
+
+            case condicion r of -- revisa que tipo es 
+
+                GastoSuperaMonto categoria _ -> -- extrae solo la categoria 
+
+                    case condicion nuevaRegla of
+
+                        GastoSuperaMonto nuevaCategoria _ ->
+
+                            categoria /= nuevaCategoria -- ve si son diferentes para conservarla o no 
+
+                        _ -> True
+
+                _ -> True
+        )
+        listaReglas
+
+
+
 -- VALIDACIONES
--- =========================================================
-
 leerCategoriaRegla :: IO String
 leerCategoriaRegla = do
 
-    putStrLn "Seleccione una categoria:"
-    putStrLn "1. Comida"
-    putStrLn "2. Transporte"
-    putStrLn "3. Salud"
-    putStrLn "4. Entretenimiento"
-    putStrLn "5. Vivienda"
+    putStrLn "\nSeleccione una categoria:"
 
-    opcion <- getLine
+    -- Mostrar categorias automaticamente
+    mostrarCategorias 1 categoriasGasto -- muestras las categorias enumeradas 
 
-    case opcion of
+    opcionStr <- getLine
 
-        "1" -> return "Comida"
-
-        "2" -> return "Transporte"
-
-        "3" -> return "Salud"
-
-        "4" -> return "Entretenimiento"
-
-        "5" -> return "Vivienda"
-
-        _ -> do
-            putStrLn "Categoria invalida"
+    if not (esNumero opcionStr) -- valida que sea un numero 
+        then do
+            putStrLn "Opcion invalida"
             leerCategoriaRegla
+
+        else do
+
+            let opcion = read opcionStr :: Int -- convierte de texto a numero 
+
+            if opcion < 1 || opcion > length categoriasGasto -- verfica que esta en el rango 
+                then do
+                    putStrLn "Opcion invalida"
+                    leerCategoriaRegla
+
+                else do
+
+                    return (categoriasGasto !! (opcion - 1)) -- accde a la posicion de la lista que se eligio como opcion y la devuelve 
+
+
+
+-- MOSTRAR CATEGORIAS
+mostrarCategorias :: Int -> [String] -> IO ()
+
+mostrarCategorias _ [] = return () -- lista vacio
+
+mostrarCategorias n (c:cs) = do
+
+    putStrLn (show n ++ ". " ++ c) -- va imprimiendo cada elemento de la lista
+
+    mostrarCategorias (n + 1) cs
 
 
 
 leerMontoRegla :: IO Double
 leerMontoRegla = do
 
-    putStrLn "Ingrese el monto limite:"
+    putStrLn "Ingrese el monto:"
     montoStr <- getLine
 
     if esNumero montoStr
@@ -262,9 +418,7 @@ leerMontoRegla = do
             leerMontoRegla
 
 
--- =========================================================
 -- MODIFICAR REGLA
--- =========================================================
 
 modificarReglaIO :: EstadoSistema -> IO EstadoSistema
 modificarReglaIO estado = do
@@ -285,29 +439,27 @@ modificarReglaIO estado = do
 
         else do
 
-            let idBuscado = read idStr :: Int
+            let idBuscado = read idStr :: Int -- convierte a numero 
 
             -- Buscar regla
-            case buscarReglaPorId idBuscado (reglas estado) of
+            case buscarReglaPorId idBuscado (reglas estado) of -- busca si existe la regla 
 
                 Nothing -> do
                     putStrLn "No existe una regla con ese ID"
                     return estado
 
-                Just reglaVieja -> do
+                Just reglaVieja -> do -- regresa la regla que ya existe 
 
                     putStrLn "\nIngrese los nuevos datos"
 
                     -- Revisar tipo de regla
                     case condicion reglaVieja of
 
-                        -- =====================================
                         -- MODIFICAR REGLA DE GASTO
-                        -- =====================================
 
-                        GastoSuperaMonto _ _ -> do
+                        GastoSuperaMonto _ _ -> do -- si es de tipo gasto y no extrae los datos
 
-                            categoria <- leerCategoriaRegla
+                            categoria <- leerCategoriaRegla -- lee categoria 
 
                             monto <- leerMontoRegla
 
@@ -337,17 +489,17 @@ modificarReglaIO estado = do
 
                             putStrLn "Regla modificada correctamente"
 
-                            return estadoNuevo
+                            return estadoNuevo -- devuelve el estado actulizado 
 
 
 
-                        -- =====================================
+                 
                         -- MODIFICAR REGLA DE AHORRO
-                        -- =====================================
+                      
 
                         AhorroMenorA _ -> do
 
-                            monto <- leerMontoRegla
+                            monto <- leerMontoRegla -- lee el nuevo monto 
 
                             putStrLn "Ingrese el nuevo mensaje:"
                             mensaje <- getLine
@@ -379,44 +531,38 @@ modificarReglaIO estado = do
 
 
 
--- =========================================================
--- BUSCAR REGLA POR ID
--- =========================================================
 
+-- BUSCAR REGLA POR ID
 buscarReglaPorId :: Int -> [ReglaSistema] -> Maybe ReglaSistema
 buscarReglaPorId _ [] = Nothing
 
-buscarReglaPorId idBuscado (r:rs)
+buscarReglaPorId idBuscado (r:rs) -- va recorriendo cada elemento comparando el id 
 
-    | reglaId r == idBuscado = Just r
+    | reglaId r == idBuscado = Just r -- regresa la regla 
 
     | otherwise =
         buscarReglaPorId idBuscado rs
 
 
 
--- =========================================================
+
 -- REEMPLAZAR REGLA
--- =========================================================
-
 reemplazarRegla :: ReglaSistema -> [ReglaSistema] -> [ReglaSistema]
-reemplazarRegla nuevaRegla lista =
+reemplazarRegla nuevaRegla lista = -- recibe la nueva regla y la lista 
 
-    map reemplazar lista
+    map reemplazar lista -- recore cada elemento de la lista y le alplica una funcion 
 
     where
 
-        reemplazar r
+        reemplazar r  --funcion que recibe r 
 
-            | reglaId r == reglaId nuevaRegla = nuevaRegla
+            | reglaId r == reglaId nuevaRegla = nuevaRegla -- compara id si coincide remplza la vieja por la nueva 
 
             | otherwise = r
 
 
--- =========================================================
--- ELIMINAR REGLA
--- =========================================================
 
+-- ELIMINAR REGLA
 eliminarReglaIO :: EstadoSistema -> IO EstadoSistema
 eliminarReglaIO estado = do
 
@@ -446,7 +592,7 @@ eliminarReglaIO estado = do
                     putStrLn "No existe una regla con ese ID"
                     return estado
 
-                Just reglaEncontrada -> do
+                Just reglaEncontrada -> do -- regresa la regla 
 
                     -- Mostrar regla encontrada
                     putStrLn "\nRegla encontrada:\n"
@@ -461,16 +607,14 @@ eliminarReglaIO estado = do
 
                     case confirmacion of
 
-                        -- ==============================
                         -- ELIMINAR
-                        -- ==============================
 
                         "1" -> do
 
                             let reglasActualizadas =
-                                    eliminarRegla idBuscado (reglas estado)
+                                    eliminarRegla idBuscado (reglas estado) -- elimina la regla de la lista y guarda la lista actulizada 
 
-                            let estadoNuevo =
+                            let estadoNuevo = -- guarda el nuevo estado 
                                     estado
                                         { reglas = reglasActualizadas }
 
@@ -479,108 +623,104 @@ eliminarReglaIO estado = do
                             return estadoNuevo
 
 
-                        -- ==============================
                         -- CANCELAR
-                        -- ==============================
 
                         "2" -> do
                             putStrLn "Eliminacion cancelada"
                             return estado
 
 
-                        -- ==============================
                         -- OPCIÓN INVÁLIDA
-                        -- ==============================
-
                         _ -> do
                             putStrLn "Opcion invalida"
                             return estado
 
 
--- =========================================================
--- ELIMINAR REGLA DE LA LISTA
--- =========================================================
 
+-- ELIMINAR REGLA DE LA LISTA
 eliminarRegla :: Int -> [ReglaSistema] -> [ReglaSistema]
 eliminarRegla idBuscado lista =
 
-    filter (\r -> reglaId r /= idBuscado) lista
+    filter (\r -> reglaId r /= idBuscado) lista -- recorre la lista y solo conservan los elementos que no coincida con el id que se elimna 
     
 
-verificarReglasGasto :: EstadoSistema -> IO ()
-verificarReglasGasto estado = do
 
-    let listaReglas = reglas estado
+-- VERIFICAR REGLAS DE GASTO
+verificarReglasGasto :: String -> EstadoSistema -> IO ()
+verificarReglasGasto categoriaRegistro estado = do
 
-    verificarListaReglas listaReglas estado
+    let listaReglas = reglas estado -- obtiene la lista de reglas 
+
+    verificarListaReglas categoriaRegistro listaReglas estado -- llama a la otra funcion 
 
 
 
--- =========================================================
 -- RECORRER LISTA DE REGLAS
--- =========================================================
+verificarListaReglas :: String -> [ReglaSistema] -> EstadoSistema -> IO ()
 
-verificarListaReglas :: [ReglaSistema] -> EstadoSistema -> IO ()
-verificarListaReglas [] _ = return ()
+verificarListaReglas _ [] _ = return () -- lista vacia 
 
-verificarListaReglas (r:rs) estado = do
+verificarListaReglas categoriaRegistro (r:rs) estado = do
 
     -- Revisar condición de la regla
     case condicion r of
 
-        -- =========================================
+      
         -- REGLA DE GASTO
-        -- =========================================
 
-        GastoSuperaMonto categoria limite -> do
+        GastoSuperaMonto categoria limite -> do -- extrae categoria y limite 
 
-            -- Obtener total gastado
-            let gastoTotal =
-                    obtenerGastoTotalCategoria categoria estado
-
-            -- Verificar si supera límite
-            if gastoTotal > limite
+            -- SOLO revisar si la categoria coincide
+            if categoria == categoriaRegistro
                 then do
 
-                    putStrLn "\n ALERTA DE REGLA "
+                    -- Obtener total gastado
+                    let gastoTotal =
+                            obtenerGastoTotalCategoria categoria estado
 
-                    putStrLn ("Categoria: " ++ categoria)
+                    -- Verificar si supera límite
+                    if gastoTotal > limite
+                        then do
 
-                    putStrLn ("Limite definido: " ++ show limite)
+                            putStrLn "\nALERTA DE REGLA"
 
-                    putStrLn ("Gasto actual: " ++ show gastoTotal)
+                            putStrLn ("Categoria: " ++ categoria)
 
-                    putStrLn ("Mensaje: " ++ mensajeAlerta r)
+                            putStrLn ("Limite definido: " ++ show limite)
+
+                            putStrLn ("Gasto actual: " ++ show gastoTotal)
+
+                            putStrLn ("Mensaje: " ++ mensajeAlerta r)
+
+                        else
+                            return ()
 
                 else
                     return ()
 
 
-        -- =========================================
+
         -- SI ES OTRA REGLA
-        -- =========================================
 
         _ ->
             return ()
 
 
     -- Seguir revisando el resto
-    verificarListaReglas rs estado
+    verificarListaReglas categoriaRegistro rs estado
 
 
 
--- =========================================================
+
 -- OBTENER TOTAL DE GASTOS DE UNA CATEGORÍA
--- =========================================================
-
 obtenerGastoTotalCategoria :: String -> EstadoSistema -> Double
 obtenerGastoTotalCategoria categoriaBuscada estado =
 
-    let listaRegistros = registros estado
+    let listaRegistros = registros estado -- obtiene los registros
 
         -- Solo gastos
         gastos =
-            filter (\r -> tipo r == Gasto) listaRegistros
+            filter (\r -> tipo r == Gasto) listaRegistros --deja una lista donde solo sean tipo gasto
 
         -- Filtrar categoría
         categoriaFiltrada =
@@ -588,18 +728,16 @@ obtenerGastoTotalCategoria categoriaBuscada estado =
                 (\r ->
                     categoria r == categoriaBuscada
                 )
-                gastos
+                gastos -- 
 
     in
 
-        sum (map monto categoriaFiltrada)
+        sum (map monto categoriaFiltrada) --suma el total y devuelve 
 
 
 
--- =========================================================
+
 -- VERIFICAR REGLAS DE AHORRO
--- =========================================================
-
 verificarReglasAhorro :: EstadoSistema -> IO ()
 verificarReglasAhorro estado = do
 
@@ -609,9 +747,8 @@ verificarReglasAhorro estado = do
 
 
 
--- =========================================================
+
 -- RECORRER LISTA DE REGLAS
--- =========================================================
 
 verificarListaReglasAhorro :: [ReglaSistema] -> EstadoSistema -> IO ()
 verificarListaReglasAhorro [] _ = return ()
@@ -621,11 +758,9 @@ verificarListaReglasAhorro (r:rs) estado = do
     -- Revisar condición
     case condicion r of
 
-        -- =========================================
-        -- REGLA DE AHORRO
-        -- =========================================
+        -- REGLA DE AHORRo
 
-        AhorroMenorA limite -> do
+        AhorroMenorA limite -> do -- solo si es de ahorro extrae el limite 
 
             -- Obtener ahorro total
             let ahorroTotal =
@@ -649,9 +784,8 @@ verificarListaReglasAhorro (r:rs) estado = do
                     return ()
 
 
-        -- =========================================
+ 
         -- SI ES OTRO TIPO DE REGLA
-        -- =========================================
 
         _ ->
             return ()
@@ -662,23 +796,44 @@ verificarListaReglasAhorro (r:rs) estado = do
 
 
 
--- =========================================================
--- OBTENER TOTAL DE AHORROS
--- =========================================================
+
+-- OBTENER AHORRO REAL
+
 
 obtenerTotalAhorro :: EstadoSistema -> Double
 obtenerTotalAhorro estado =
 
-    let listaRegistros = registros estado
+    let listaRegistros = registros estado -- obtiene los registros 
 
-        -- Solo registros de ahorro
-        ahorros =
-            --filter (\r -> tipo r == Ahorro) listaRegistros
-            filter (\r -> categoria r == "Ahorro") listaRegistros
+        ingresosAhorro =
+            filter
+                (\r ->
+                    tipo r == Ingreso &&
+                    categoria r == "Ahorro"
+                )
+                listaRegistros -- obtiene los ingresos de ahorro
+
+        totalIngresos =
+            sum (map monto ingresosAhorro) --suma el total
+
+
+        -- GASTOS EN AHORRO
+        -- Dinero retirado del ahorro
+
+        gastosAhorro =
+            filter
+                (\r ->
+                    tipo r == Gasto &&
+                    categoria r == "Ahorro"
+                )
+                listaRegistros -- filtra solo los gasto de tipo ahorro
+
+        totalGastos =
+            sum (map monto gastosAhorro)
 
     in
 
-        sum (map monto ahorros)
+        totalIngresos - totalGastos  -- devuelve cual es el ahorro real 
 
 -- Verifica si un string es número
 esNumero :: String -> Bool
