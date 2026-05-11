@@ -33,7 +33,7 @@ import Reglas
 -- hFlush stdout fuerza que el texto aparezca en pantalla
 -- antes de esperar que el usuario escriba algo.
 
--- SECCIoN 2: MENu PRINCIPAL DE REGISTROS
+
 
 -- Esta es la funcion que llama el Main cuando el usuario elige "Registros" en el menu principal.
 -- Muestra un submenu con todas las opciones disponibles.
@@ -95,12 +95,10 @@ pedirRegistro estado t = do
     putStrLn ""
     putStrLn ("--- Nuevo " ++ mostrarTipo t ++ " ---")
 
-    -- PASO 1: Categoria con opciones numeradas
     -- En vez de que el usuario escriba lo que quiera,
     -- le mostramos las opciones disponibles y elige un numero.
     cat <- pedirCategoria t
 
-    -- PASO 2: Monto
     m <- pedirMonto
 
     -- PASO 3: Fecha

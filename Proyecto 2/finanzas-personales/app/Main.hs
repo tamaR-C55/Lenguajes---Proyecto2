@@ -1,16 +1,4 @@
--- ============================================================
--- Main.hs
--- Punto de entrada del sistema de finanzas personales
---
--- Este archivo es el que ejecuta Haskell primero.
--- Su trabajo es:
---   1. Cargar los datos guardados (o iniciar desde cero)
---   2. Mostrar el menú principal
---   3. Llamar al módulo correcto según lo que elija el usuario
---   4. Guardar los datos antes de salir
---
--- Depende de: Types.hs, Registro.hs, Persistencia.hs
---             (y eventualmente Presupuesto, Analisis, Reportes)
+
 -- ============================================================
 
 module Main where
@@ -24,12 +12,6 @@ import Reportes (menuReportes)
 import Reglas 
 
 
--- ============================================================
--- FUNCIÓN PRINCIPAL
---
--- 'main' es la función que Haskell ejecuta al iniciar.
--- Siempre tiene tipo IO ().
--- ============================================================
 
 main :: IO ()
 main = do
