@@ -87,7 +87,7 @@ generarResumenMensual mes anio registrosMes =
 generarComparacionPeriodosIO :: EstadoSistema -> IO ()
 generarComparacionPeriodosIO estado = do
     putStrLn ""
-    putStrLn "--- COMPARACIÓN ENTRE PERIODOS ---"
+    putStrLn "--- COMPARACION ENTRE PERIODOS ---"
     
     putStrLn "\nPrimer periodo:"
     m1 <- pedirNumeroEnRango "  Mes (1-12): " 1 12
@@ -121,21 +121,21 @@ generarComparacionPeriodos m1 a1 m2 a2 regs1 regs2 =
         periodo1 = nombreDelMes m1 ++ " " ++ show a1
         periodo2 = nombreDelMes m2 ++ " " ++ show a2
         
-        signoGastos = if variacionGastos > 0 then "↑" else if variacionGastos < 0 then "↓" else "="
-        signoIngresos = if variacionIngresos > 0 then "↑" else if variacionIngresos < 0 then "↓" else "="
+        signoGastos = if variacionGastos > 0 then "+" else if variacionGastos < 0 then "-" else "="
+        signoIngresos = if variacionIngresos > 0 then "+" else if variacionIngresos < 0 then "-" else "="
     in
         "\n╔════════════════════════════════════════════════════════════════╗\n" ++
-        "║        COMPARACION: " ++ periodo1 ++ " vs " ++ periodo2 ++ "        ║\n" ++
+        "║        COMPARACION: " ++ periodo1 ++ " vs " ++ periodo2 ++  
         "╠════════════════════════════════════════════════════════════════╣\n" ++
         "║ GASTOS:                                                        ║\n" ++
-        "║   " ++ periodo1 ++ ":     " ++ pad25 (formatoMoneda gastos1) ++ "║\n" ++
-        "║   " ++ periodo2 ++ ":     " ++ pad25 (formatoMoneda gastos2) ++ "║\n" ++
-        "║   Variacion: " ++ signoGastos ++ " " ++ pad30 (formatoMoneda variacionGastos ++ " (" ++ show (round pctCambioGastos) ++ "%)") ++ "║\n" ++
+        "║   " ++ periodo1 ++ ":     " ++ pad25 (formatoMoneda gastos1) ++ 
+        "║   " ++ periodo2 ++ ":     " ++ pad25 (formatoMoneda gastos2) ++ 
+        "║   Variacion: " ++ signoGastos ++ " " ++ pad30 (formatoMoneda variacionGastos ++ " (" ++ show (round pctCambioGastos) ++ "%)") ++ 
         "╠════════════════════════════════════════════════════════════════╣\n" ++
         "║ INGRESOS:                                                      ║\n" ++
-        "║   " ++ periodo1 ++ ":     " ++ pad25 (formatoMoneda ingresos1) ++ "║\n" ++
-        "║   " ++ periodo2 ++ ":     " ++ pad25 (formatoMoneda ingresos2) ++ "║\n" ++
-        "║   Variacion: " ++ signoIngresos ++ " " ++ pad30 (formatoMoneda variacionIngresos ++ " (" ++ show (round pctCambioIngresos) ++ "%)") ++ "║\n" ++
+        "║   " ++ periodo1 ++ ":     " ++ pad25 (formatoMoneda ingresos1) ++ 
+        "║   " ++ periodo2 ++ ":     " ++ pad25 (formatoMoneda ingresos2) ++ 
+        "║   Variacion: " ++ signoIngresos ++ " " ++ pad30 (formatoMoneda variacionIngresos ++ " (" ++ show (round pctCambioIngresos) ++ "%)") ++ 
         "╚════════════════════════════════════════════════════════════════╝"
 
 
